@@ -972,6 +972,11 @@
   });
   addEventListener('appinstalled', () => hide('btnInstall'));
 
+  // iPhone / iPad: Safari has no install prompt, so show a short help text.
+  const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const isStandalone = window.navigator.standalone === true || matchMedia('(display-mode: standalone), (display-mode: fullscreen)').matches;
+  if (isIOS && !isStandalone) show('iosHint');
+
   // ---------- Resize ----------
   function resize() {
     const r = app.getBoundingClientRect();

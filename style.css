@@ -273,3 +273,6 @@ html, body {
 }
 .stats span { font-size: 11px; color: var(--dim); letter-spacing: 1px; }
 .stats b { font-size: 24px; color: var(--ink); }
+
+.ios-hint { font-size: 12px; line-height: 1.5; max-width: 280px; }
+.ios-hint b { color: var(--ink); }
