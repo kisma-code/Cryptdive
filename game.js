@@ -1841,6 +1841,17 @@
 
   // ---------- Service worker ----------
   if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
-    addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
+    addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then((reg) => reg.update()).catch(() => {});
+    });
+    // When a new version takes over, reload once (only if no run is in progress).
+    let reloaded = false;
+    const hadController = !!navigator.serviceWorker.controller;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (reloaded || !hadController) return;
+      if (state === 'play' || state === 'levelup' || state === 'paused' || state === 'dying') return;
+      reloaded = true;
+      location.reload();
+    });
   }
 })();
