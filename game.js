@@ -274,7 +274,7 @@
     };
   }
   function clearLists() {
-    hitfx = []; rings = []; impact.t = 0;
+    hitfx = []; rings = [];
     enemies = []; pending = []; rockets = []; beams = []; zaps = []; booms = [];
     gems = []; hearts = []; parts = []; texts = [];
   }
@@ -610,7 +610,15 @@
         cur = nearestFrom(cx, cy, w.jump, used);
         n++;
       }
-      zaps.push({ pts, life: 0.28, max: 0.28 });
+      // Make the zigzag shape once, so the bolt does not flicker.
+      const segs = [];
+      for (let i = 0; i < pts.length - 1; i++) {
+        const main = jag(pts[i].x, pts[i].y, pts[i + 1].x, pts[i + 1].y, 3);
+        let branch = null;
+        if (Math.random() < 0.5) { const m = main[randi(main.length)]; branch = jag(m.x, m.y, m.x + rand(-9, 9), m.y + rand(-9, 9), 2); }
+        segs.push({ main, branch });
+      }
+      zaps.push({ pts, segs, life: 0.28, max: 0.28 });
     }
     shake = Math.max(shake, 1);
     sfx.zap();
@@ -663,7 +671,6 @@
       if (d < r + e.r) { hurtEnemy(e, wDmg(), dx / (d || 1), dy / (d || 1), 1.3); nHit++; }
     }
     ring(x, y, 4, r * 1.3, '#ffd27a', 0.35, 2.5);
-    if (nHit >= 3) impactFrame(x, y);
     booms.push({ x, y, r, life: 0.45, max: 0.45 });
     spark(x, y, '#ffd27a', 14, 110, 0.45, 2);
     spark(x, y, '#ff6a1a', 10, 70, 0.5, 2);
@@ -733,10 +740,7 @@
     hitSpark(e.x, e.y - 1, dirX, dirY, W.color, crit);
     addNum(e.x + rand(-2, 2), e.y - 8, String(Math.max(1, Math.round(dmg))) + (crit ? '!' : ''), crit ? 'crit' : 'hit');
     if (crit) { ring(e.x, e.y, 2, 16, '#ffffff', 0.25, 1.5); shake = Math.max(shake, 1.5); sfx.crit(); } else sfx.hit();
-    if (e.hp <= 0) {
-      killEnemy(e);
-      if (crit || e.type === 'boss') impactFrame(e.x, e.y);
-    }
+    if (e.hp <= 0) killEnemy(e);
   }
 
   function killEnemy(e) {
@@ -1072,7 +1076,7 @@
     const L = WEAPONS.laser;
     for (const b of beams) {
       const k = b.life / b.max;
-      const wdt = b.width * (0.35 + 0.65 * k) * rand(0.85, 1.15);
+      const wdt = b.width * (0.35 + 0.65 * k);
       const x1 = b.x + b.dx * b.len, y1 = b.y + b.dy * b.len;
       glowLine([{ x: b.x, y: b.y }, { x: x1, y: y1 }], wdt, L.color, Math.min(1, k * 1.6));
       glow(b.x, b.y, 6 + wdt * 2, L.glow, k);
@@ -1083,16 +1087,11 @@
     const Z = WEAPONS.lightning;
     for (const z of zaps) {
       const k = z.life / z.max;
-      for (let i = 0; i < z.pts.length - 1; i++) {
-        const a = z.pts[i], b = z.pts[i + 1];
-        const main = jag(a.x, a.y, b.x, b.y, 3);
-        glowLine(main, 1.6, Z.glow, k * 0.8);
-        glowLine(main, 1.1, Z.color, k);
-        // Small side branch
-        if (Math.random() < 0.5) {
-          const m = main[randi(main.length)];
-          glowLine(jag(m.x, m.y, m.x + rand(-9, 9), m.y + rand(-9, 9), 2), 0.7, Z.color, k * 0.8);
-        }
+      for (let i = 0; i < z.segs.length; i++) {
+        const sg = z.segs[i], b = z.pts[i + 1];
+        glowLine(sg.main, 1.6, Z.glow, k * 0.8);
+        glowLine(sg.main, 1.1, Z.color, k);
+        if (sg.branch) glowLine(sg.branch, 0.7, Z.color, k * 0.8);
         glow(b.x, b.y, 9, Z.color, k * 0.9);
       }
       glow(z.pts[0].x, z.pts[0].y, 8, Z.glow, k);
@@ -1154,7 +1153,6 @@
     for (const b of booms) {
       const k = b.life / b.max, e = 1 - k;
       const ease = 1 - Math.pow(1 - e, 3);
-      if (e < 0.15) glow(b.x, b.y, b.r * 1.4, '#ffffff', 1 - e / 0.15);
       glow(b.x, b.y, b.r * (0.5 + 0.7 * ease), '#ff8a2a', k * 1.2);
       glow(b.x, b.y, b.r * (0.3 + 0.4 * ease), '#ffd27a', k);
       g.save();
@@ -1168,9 +1166,8 @@
   }
 
   // ---------- Anime hit effects ----------
-  // Star sparks and slash arcs on hits, energy rings, impact frames with focus lines.
+  // Star sparks and slash arcs on hits, small rings at hit points. No full-screen flashes (photosensitive safety).
   let hitfx = [], rings = [];
-  const impact = { t: 0, x: 0, y: 0, cd: 0 };
   const CRIT_CHANCE = 0.15;
 
   function addNum(x, y, val, kind) {
@@ -1187,17 +1184,11 @@
   function ring(x, y, r0, r1, color, life = 0.3, width = 2) {
     rings.push({ x, y, r0, r1, color, width, life, max: life });
   }
-  function impactFrame(x, y) {
-    if (impact.cd > 0) return;
-    impact.t = 0.09; impact.x = x; impact.y = y; impact.cd = 0.6;
-  }
   function updateAnimeFx(dt) {
     for (const f of hitfx) f.life -= dt;
     hitfx = hitfx.filter((f) => f.life > 0);
     for (const r of rings) r.life -= dt;
     rings = rings.filter((r) => r.life > 0);
-    if (impact.t > 0) impact.t -= dt;
-    if (impact.cd > 0) impact.cd -= dt;
   }
 
   function drawAnimeFx() {
@@ -1261,30 +1252,7 @@
     }
   }
 
-  // Impact frame: a short bright frame with black focus lines (anime style).
-  function drawImpactFrame() {
-    if (impact.t <= 0) return;
-    const k = impact.t / 0.09;
-    const sx = impact.x - camX, sy = impact.y - camY;
-    g.save();
-    g.globalAlpha = 0.22 * k;
-    g.fillStyle = '#ffffff';
-    g.fillRect(0, 0, viewW, viewH);
-    g.globalAlpha = 0.6 * k;
-    g.fillStyle = '#000000';
-    for (let i = 0; i < 28; i++) {
-      const a = (i / 28) * Math.PI * 2 + rand(-0.08, 0.08);
-      const r0 = rand(22, 40), r1 = 260, w = rand(0.3, 1.4);
-      const ca = Math.cos(a), sa = Math.sin(a);
-      g.beginPath();
-      g.moveTo(sx + ca * r0, sy + sa * r0);
-      g.lineTo(sx + ca * r1 - sa * w * 6, sy + sa * r1 + ca * w * 6);
-      g.lineTo(sx + ca * r1 + sa * w * 6, sy + sa * r1 - ca * w * 6);
-      g.closePath();
-      g.fill();
-    }
-    g.restore();
-  }
+
 
   // ---------- Torches and light ----------
   // The dungeon is dark. Light shows only around the hero, torches, and weapon effects.
@@ -1439,10 +1407,9 @@
       const age = 1 - x.life / x.max;
       const base = x.kind === 'crit' ? 2 : 1.3;
       const sc = base * (1 + 0.9 * Math.max(0, 1 - age / 0.14));
-      const col = x.kind === 'crit' ? (Math.floor(age * 20) % 2 ? '#ffcd75' : '#ff8a2a') : x.kind === 'heal' ? '#a7f070' : '#ffffff';
+      const col = x.kind === 'crit' ? '#ffcd75' : x.kind === 'heal' ? '#a7f070' : '#ffffff';
       drawNum(x.val, x.x, x.y, col, sc, Math.min(1, x.life / 0.2));
     }
-    drawImpactFrame();
 
     // Arrow to stairs when they are off screen
     if (stairs && state === 'play') {
@@ -1837,7 +1804,7 @@
     setWeapon: (id) => { if (WEAPONS[id]) { weaponId = id; store.set(KEY_WEAPON, id); } },
   };
 
-  window.__pd = { get state() { return state; }, get floor() { return floor; }, get player() { return p; }, get enemies() { return enemies; }, get stairs() { return stairs; }, get fx() { return { beams: beams.length, zaps: zaps.length, rockets: rockets.length, booms: booms.length, parts: parts.length, hits: hitfx.length, impact: impact.t > 0 }; } };
+  window.__pd = { get state() { return state; }, get floor() { return floor; }, get player() { return p; }, get enemies() { return enemies; }, get stairs() { return stairs; }, get fx() { return { beams: beams.length, zaps: zaps.length, rockets: rockets.length, booms: booms.length, parts: parts.length, hits: hitfx.length }; } };
 
   // ---------- Service worker ----------
   if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
