@@ -160,10 +160,11 @@
 
   // ---------- Themes per floor ----------
   const THEMES = [
-    { f1: '#3a4466', f2: '#343d5c', sp: '#4b5680', wall: '#262b44', top: '#5a6988' },
-    { f1: '#2f4a3a', f2: '#2a4334', sp: '#3f6b4c', wall: '#1d2b22', top: '#4f7d5a' },
-    { f1: '#4a3352', f2: '#432e4a', sp: '#634470', wall: '#2a1c30', top: '#7a5585' },
-    { f1: '#55352f', f2: '#4d302a', sp: '#7a463a', wall: '#2e1b18', top: '#8a5444' },
+    // Dark, moody colors: the weapon glow looks stronger on them.
+    { f1: '#1e2338', f2: '#1b2033', sp: '#2b3352', wall: '#0e1120', top: '#3b4568' },
+    { f1: '#17261f', f2: '#15231c', sp: '#223d2d', wall: '#0a130e', top: '#2e5a3d' },
+    { f1: '#251a2e', f2: '#22172a', sp: '#382548', wall: '#110a17', top: '#56396a' },
+    { f1: '#2a1714', f2: '#261512', sp: '#43211a', wall: '#130908', top: '#6a3226' },
   ];
 
   // ---------- Monsters ----------
@@ -383,7 +384,7 @@
       const s = freeSpot(90);
       pending.push({ type: 'boss', x: s.x, y: s.y, t: 1.4 });
     }
-    showBanner(boss ? 'FLOOR ' + floor + '\nBOSS!' : 'FLOOR ' + floor);
+    showBanner(boss ? 'Floor ' + floor + '\nBoss fight' : 'Floor ' + floor);
   }
 
   function pickType() {
@@ -412,7 +413,7 @@
     fl.cleared = true;
     const s = freeSpot(70);
     stairs = { x: s.x, y: s.y };
-    showBanner('CLEAR!\nFIND THE STAIRS');
+    showBanner('Floor clear\nFind the stairs');
     sfx.clear();
   }
 
@@ -875,21 +876,19 @@
     g.fillRect(snap(x - camX - w / 2), snap(y - camY), w, 2);
   }
 
+  const NUM_FONT = '700 6px ui-rounded, "SF Pro Rounded", -apple-system, BlinkMacSystemFont, system-ui, sans-serif';
   function drawNum(str, x, y, col) {
-    const w = str.length * 4 - 1;
-    const ox = snap(x - camX - w / 2), oy = snap(y - camY);
-    for (let pass = 0; pass < 2; pass++) {
-      g.fillStyle = pass ? col : PAL.k;
-      const o = pass ? 0 : 1;
-      for (let c = 0; c < str.length; c++) {
-        const bits = DIG[str[c]];
-        if (!bits) continue;
-        for (let i = 0; i < 15; i++) {
-          if (bits[i] === '1') g.fillRect(ox + c * 4 + (i % 3) + o, oy + Math.floor(i / 3) + o, 1, 1);
-        }
-      }
-    }
+    g.font = NUM_FONT;
+    g.textAlign = 'center';
+    g.textBaseline = 'top';
+    g.lineJoin = 'round';
+    g.lineWidth = 1.6;
+    g.strokeStyle = 'rgba(0,0,0,.75)';
+    g.strokeText(str, x - camX, y - camY);
+    g.fillStyle = col;
+    g.fillText(str, x - camX, y - camY);
   }
+
 
   function updateCamera(dt) {
     let tx = p.x - viewW / 2;
@@ -1084,7 +1083,7 @@
   function render(dt) {
     updateCamera(dt);
     g.setTransform(R, 0, 0, R, 0, 0);
-    g.fillStyle = '#0e1122';
+    g.fillStyle = '#05060c';
     g.fillRect(0, 0, viewW, viewH);
     g.drawImage(bg, -camX, -camY);
 
@@ -1177,10 +1176,10 @@
     hud.hpFill.style.transform = `scaleX(${p.hp / p.maxHp})`;
     hud.xpFill.style.transform = `scaleX(${p.xp / p.xpNext})`;
     setText(hud.hpText, 'hp', Math.ceil(p.hp) + '/' + p.maxHp);
-    setText(hud.lv, 'lv', 'LV ' + p.level);
-    setText(hud.floor, 'fl', 'FLOOR ' + floor);
+    setText(hud.lv, 'lv', 'Lv ' + p.level);
+    setText(hud.floor, 'fl', 'Floor ' + floor);
     const left = fl ? fl.toSpawn + pending.length + enemies.length : 0;
-    setText(hud.foe, 'foe', fl && fl.cleared ? 'GO TO STAIRS' : 'FOES ' + left);
+    setText(hud.foe, 'foe', fl && fl.cleared ? 'Go to stairs' : left + ' left');
   }
 
   // ---------- Screens ----------
@@ -1258,7 +1257,8 @@
       if (u.weapon) { btn.style.setProperty('--wc', W.color); btn.style.setProperty('--wg', W.glow); }
       btn.disabled = true;
       const ico = document.createElement('span');
-      ico.className = 'ico'; ico.style.background = u.color; ico.textContent = u.icon;
+      ico.className = 'ico'; ico.textContent = u.icon;
+      if (!u.weapon) ico.style.background = `linear-gradient(135deg, ${u.color}, color-mix(in srgb, ${u.color} 55%, #000))`;
       const txt = document.createElement('span');
       const name = document.createElement('b'); name.textContent = u.name;
       const desc = document.createElement('small'); desc.textContent = u.desc;
