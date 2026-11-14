@@ -728,7 +728,7 @@
     const m = Math.hypot(mx, my);
     if (m > 1) { mx /= m; my /= m; }
     // Ease the speed to the joystick value: soft but fast start and stop.
-    const ease = 1 - Math.exp(-22 * dt);
+    const ease = 1 - Math.exp(-34 * dt);
     p.vx += (mx * p.speed - p.vx) * ease;
     p.vy += (my * p.speed - p.vy) * ease;
     const ox = p.x, oy = p.y;
@@ -898,11 +898,9 @@
     tx = minX > maxX ? (minX + maxX) / 2 : clamp(tx, minX, maxX);
     const minY = -topPad, maxY = RH - viewH + bottomPad;
     ty = minY > maxY ? (minY + maxY) / 2 : clamp(ty, minY, maxY);
-    // The camera follows the hero softly.
-    if (camSnap) { camBX = tx; camBY = ty; camSnap = false; }
-    const k = 1 - Math.exp(-10 * dt);
-    camBX += (tx - camBX) * k;
-    camBY += (ty - camBY) * k;
+    // The camera locks to the hero, so the hero stays still on the screen
+    // and only the world moves. (A delayed camera feels like dragging.)
+    camBX = tx; camBY = ty; camSnap = false;
     camX = camBX; camY = camBY;
     if (shake > 0) { camX += rand(-shake, shake); camY += rand(-shake, shake); }
     camX = snap(camX); camY = snap(camY);
@@ -1312,53 +1310,38 @@
     show('scrTitle');
   }
 
-  // ---------- Input: floating joystick ----------
-  // Touch any part of the screen: the joystick shows at the finger.
-  // If the finger goes far, the joystick follows it.
-  // On release, the joystick goes back to the bottom middle (faint hint).
-  const input = { x: 0, y: 0, id: null, ox: 0, oy: 0 };
+  // ---------- Input: fixed joystick (bottom middle) ----------
+  // The direction comes from the knob. A small push gives full speed,
+  // so the hero reacts at once and you control only the direction.
+  const input = { x: 0, y: 0, id: null };
   const stick = $('stick'), knob = $('knob'), zone = $('touchZone');
-  const STICK_R = 62;        // half of the base size in CSS px
-  const STICK_MAX = 50;      // how far the knob can go from the center
+  const DEAD = 0.12;   // no move in this small center part
+  const FULL = 0.38;   // full speed from this part of the knob travel
 
-  function placeStick() {
-    const r = app.getBoundingClientRect();
-    stick.style.left = (input.ox - r.left) + 'px';
-    stick.style.top = (input.oy - r.top) + 'px';
-    stick.style.bottom = 'auto';
-    stick.style.marginTop = -STICK_R + 'px';
-  }
   function moveStick(e) {
-    let dx = e.clientX - input.ox, dy = e.clientY - input.oy;
-    let d = Math.hypot(dx, dy);
-    if (d > STICK_MAX) {
-      // Drag the base along with the finger.
-      const pull = d - STICK_MAX;
-      input.ox += (dx / d) * pull; input.oy += (dy / d) * pull;
-      dx = e.clientX - input.ox; dy = e.clientY - input.oy;
-      d = STICK_MAX;
-      placeStick();
-    }
-    knob.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
-    if (d / STICK_MAX < 0.12) { input.x = 0; input.y = 0; }
-    else { input.x = dx / STICK_MAX; input.y = dy / STICK_MAX; }
+    const r = stick.getBoundingClientRect();
+    const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    let dx = e.clientX - cx, dy = e.clientY - cy;
+    const max = r.width * 0.4;
+    const d = Math.hypot(dx, dy);
+    const kd = Math.min(d, max);
+    if (d > 0) { knob.style.transform = `translate(calc(-50% + ${(dx / d) * kd}px), calc(-50% + ${(dy / d) * kd}px))`; }
+    const m = kd / max;
+    if (m < DEAD) { input.x = 0; input.y = 0; return; }
+    const power = Math.min(1, (m - DEAD) / (FULL - DEAD));
+    input.x = (dx / d) * power;
+    input.y = (dy / d) * power;
   }
   function endStick(e) {
     if (e.pointerId !== input.id) return;
     input.id = null; input.x = 0; input.y = 0;
     knob.style.transform = 'translate(-50%, -50%)';
     stick.classList.remove('active');
-    stick.style.left = stick.style.top = stick.style.bottom = stick.style.marginTop = '';
   }
   zone.addEventListener('pointerdown', (e) => {
     if (input.id !== null) return;
     input.id = e.pointerId;
     try { zone.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
-    const r = app.getBoundingClientRect();
-    // Keep the whole joystick on the screen.
-    input.ox = clamp(e.clientX, r.left + STICK_R, r.right - STICK_R);
-    input.oy = clamp(e.clientY, r.top + STICK_R, r.bottom - STICK_R);
-    placeStick();
     stick.classList.add('active');
     moveStick(e);
     unlockAudio();
@@ -1497,8 +1480,12 @@
     hudEl.classList.remove('hidden');
     const hb = hudEl.getBoundingClientRect().bottom - r.top;
     if (wasHidden) hudEl.classList.add('hidden');
+    const stWasHidden = stick.classList.contains('hidden');
+    stick.classList.remove('hidden');
+    const st = stick.getBoundingClientRect().top - r.top;
+    if (stWasHidden) stick.classList.add('hidden');
     topPad = Math.round((hb + 4) * cssToLogical);
-    bottomPad = Math.round(12 * cssToLogical);
+    bottomPad = Math.round((h - st + 8) * cssToLogical);
   }
   addEventListener('resize', resize);
   addEventListener('orientationchange', () => setTimeout(resize, 200));
