@@ -131,10 +131,13 @@ html, body {
 }
 
 /* ---------- Joystick ---------- */
-/* Touch anywhere to move. */
+/* Touch area for the fixed joystick: the bottom part of the screen. */
 #touchZone {
   position: absolute;
-  inset: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 45%;
   z-index: 3;
 }
 #stick {
@@ -150,8 +153,7 @@ html, body {
   z-index: 4;
   pointer-events: none;
 }
-#stick { opacity: .35; transition: opacity .15s; }
-#stick.active { opacity: 1; border-color: rgba(255, 255, 255, .4); transition: none; }
+#stick.active { border-color: rgba(255, 255, 255, .45); background: rgba(255, 255, 255, .11); }
 #knob {
   position: absolute;
   left: 50%;
