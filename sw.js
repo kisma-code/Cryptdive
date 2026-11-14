@@ -1,6 +1,6 @@
 // Service worker: keeps the game files on the device, so the game works offline.
 // Change VERSION when you change a game file.
-const VERSION = 'pixel-depths-v7';
+const VERSION = 'pixel-depths-v6';
 const FILES = [
   './',
   './index.html',
