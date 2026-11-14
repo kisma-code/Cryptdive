@@ -9,8 +9,9 @@
   // ---------- Config ----------
   const TARGET_W = 160;          // about this many game pixels across the screen
   const TILE = 16;
-  const ROOM_W = 15, ROOM_H = 23; // room size in tiles
-  const RW = ROOM_W * TILE, RH = ROOM_H * TILE;
+  // Room size in tiles. It changes for each floor (small, medium, large).
+  let ROOM_W = 15, ROOM_H = 23;
+  let RW = ROOM_W * TILE, RH = ROOM_H * TILE;
   const KEY_BEST = 'pixelDepths.bestFloor';
   const KEY_MUTE = 'pixelDepths.mute';
   const KEY_WEAPON = 'pixelDepths.weapon';
@@ -42,6 +43,7 @@
     // gothic colors
     h: '#4d3a55', D: '#7a1c2c', m: '#a7adbd', n: '#596079',
     z: '#8a9a6b', Z: '#56663f', q: '#5a4636', Q: '#3a2c24', W: '#d8cfb4',
+    u: '#5b7a3a', U: '#8fae5a',
   };
 
   function sprite(rows, swap) {
@@ -107,6 +109,47 @@
     'krrkrDDDDrkrrk',
   ];
 
+  const SLIME_A = [
+    '..........',
+    '...kkkk...',
+    '..kUUUUk..',
+    '.kUuuuuUk.',
+    'kuwkuuwkuk',
+    'kuuuuuuuuk',
+    'kuuuuuuuuk',
+    '.kkkkkkkk.',
+  ];
+  const SLIME_B = [
+    '..........',
+    '..........',
+    '...kkkk...',
+    '.kkUUUUkk.',
+    'kUuwkuwkUk',
+    'kuuuuuuuuk',
+    'kuuuuuuuuk',
+    'kkkkkkkkkk',
+  ];
+  const IMP_A = [
+    '....k..k....',
+    'k..krkkrk..k',
+    'kk.krrrrk.kk',
+    'krkryrryrkrk',
+    'krrrrrrrrrrk',
+    '.kkrrRRrrkk.',
+    '...krrrrk...',
+    '....k..k....',
+  ];
+  const IMP_B = [
+    '....k..k....',
+    '...krkkrk...',
+    '...krrrrk...',
+    '.kkryrryrkk.',
+    'krrrrrrrrrrk',
+    'krkrrRRrrkrk',
+    'kk.krrrrk.kk',
+    '....k..k....',
+  ];
+
   const SPR = {
     heroA: sprite([...HERO_TOP, '..knk.knk.', '..kk...kk.']),
     heroB: sprite([...HERO_TOP, '.knk...knk', '.kk.....kk']),
@@ -117,26 +160,8 @@
     bossA: sprite([...DEMON_TOP, 'kRkkrrDDrrkkRk', '.k.krrrrrrk.k.', '...krrkkrrk...', '...kkk..kkk...']),
     bossB: sprite([...DEMON_TOP, '.kRkrrDDrrkRk.', '..kkrrrrrrkk..', '...krrkkrrk...', '..kkk....kkk..']),
     // "bat" type = Imp (fast, flying)
-    batA: sprite([
-      '....k..k....',
-      'k..krkkrk..k',
-      'kk.krrrrk.kk',
-      'krkryrryrkrk',
-      'krrrrrrrrrrk',
-      '.kkrrRRrrkk.',
-      '...krrrrk...',
-      '....k..k....',
-    ]),
-    batB: sprite([
-      '....k..k....',
-      '...krkkrk...',
-      '...krrrrk...',
-      '.kkryrryrkk.',
-      'krrrrrrrrrrk',
-      'krkrrRRrrkrk',
-      'kk.krrrrk.kk',
-      '....k..k....',
-    ]),
+    batA: sprite(IMP_A),
+    batB: sprite(IMP_B),
     // "skel" type = Skeleton Warrior (old bone, red eyes, rusty blade)
     skel: sprite([
       '..kkkkkk....',
@@ -151,6 +176,25 @@
       '..kWkkWk..k.',
       '..kWk.kWk...',
       '..kk...kk...',
+    ]),
+    // Area monsters
+    sewerA: sprite(SLIME_A, { g: 'u', G: 'U' }),
+    sewerB: sprite(SLIME_B, { g: 'u', G: 'U' }),
+    fireA: sprite(IMP_A, { r: 'R', R: 'y', y: 'w' }),
+    fireB: sprite(IMP_B, { r: 'R', R: 'y', y: 'w' }),
+    knight: sprite([
+      '...kkkkkk...',
+      '..kmmmmmmk..',
+      '..kmkkkkmk..',
+      '..kmkrrkmk..',
+      '..kmmmmmmk..',
+      '.kkWkWWkWkk.',
+      'knnkWWWWknnk',
+      'knnkWkkWknnk',
+      'knnkkWWkknnk',
+      '.kk.kWWk.kk.',
+      '....kWkWk...',
+      '....kk.kk...',
     ]),
     gem: sprite(['..k..', '.kck.', 'kcwck', '.kck.', '..k..']),
     gemBig: sprite(['..k..', '.kGk.', 'kGwGk', '.kGk.', '..k..']),
@@ -174,21 +218,16 @@
     8: '111101111101111', 9: '111101111001111', '!': '010010010000010', '+': '000010111010000',
   };
 
-  // ---------- Themes per floor ----------
-  const THEMES = [
-    // Dark stone dungeon. Deeper floors get more red.
-    { f1: '#3a3333', f2: '#352f2f', sp: '#4a4140', wall: '#1c1718', top: '#5d504c', blood: '#5a1418', bone: '#9c937f' },
-    { f1: '#382c2e', f2: '#33282a', sp: '#4a3739', wall: '#1a1214', top: '#634447', blood: '#62131a', bone: '#968a7a' },
-    { f1: '#3c2626', f2: '#372323', sp: '#552d2d', wall: '#1c0e0e', top: '#6e3733', blood: '#6c141b', bone: '#9a8673' },
-    { f1: '#302a36', f2: '#2c2632', sp: '#433a4e', wall: '#151118', top: '#554763', blood: '#55122a', bone: '#9893a6' },
-  ];
-
   // ---------- Monsters ----------
   const ETYPES = {
     slime: { r: 4, hp: 6, speed: 22, dmg: 1, xp: 1, color: '#7a8a5a' },  // Zombie
-    bat: { r: 4, hp: 3, speed: 44, dmg: 1, xp: 1, color: '#b13e53' },    // Imp
+    bat: { r: 4, hp: 3, speed: 44, dmg: 1, xp: 1, color: '#b13e53', fly: true }, // Imp
     skel: { r: 4, hp: 13, speed: 27, dmg: 2, xp: 2, color: '#d8cfb4' },  // Skeleton Warrior
     boss: { r: 10, hp: 90, speed: 19, dmg: 3, xp: 15, color: '#b13e53' }, // Horned Demon
+    // Area monsters
+    sewer: { r: 4, hp: 10, speed: 20, dmg: 1, xp: 2, color: '#6f8f45' },   // Sewer Slime (splits in 2)
+    fireimp: { r: 4, hp: 6, speed: 46, dmg: 2, xp: 2, color: '#f97316', fly: true }, // Fire Imp
+    knight: { r: 5, hp: 32, speed: 18, dmg: 3, xp: 4, color: '#a7adbd' }, // Bone Knight (charges)
   };
 
   // ---------- Weapons ----------
@@ -213,13 +252,13 @@
         { name: 'More Chains', desc: 'Start 1 more lightning chain.', ok: (w) => w.forks < 3, apply: (w) => { w.forks++; } },
       ],
     },
-    blades: {
-      name: 'Orbit Blades', icon: 'O', color: '#ffd23f', glow: '#fff4b8', tags: 'CLOSE · ALWAYS ON',
-      desc: 'Glowing blades spin around you.',
-      base: { dmg: 3, count: 2, radius: 18, spin: 4.2, hitCd: 0.35 },
+    boomerang: {
+      name: 'Boomerang', icon: 'B', color: '#ffd23f', glow: '#fff4b8', tags: 'OUT · AND BACK',
+      desc: 'Flies out and comes back. It hits on both ways.',
+      base: { dmg: 5, cd: 1.0, count: 1, size: 5, dist: 1 }, minCd: 0.4,
       ups: [
-        { name: 'More Blades', desc: 'Add 1 more blade.', ok: (w) => w.count < 6, apply: (w) => { w.count++; } },
-        { name: 'Bigger Orbit', desc: 'Blades spin farther out.', ok: (w) => w.radius < 38, apply: (w) => { w.radius += 5; } },
+        { name: 'More Boomerangs', desc: 'Throw 1 more boomerang.', ok: (w) => w.count < 4, apply: (w) => { w.count++; } },
+        { name: 'Bigger Boomerang', desc: 'Bigger, and flies farther.', ok: (w) => w.size < 11, apply: (w) => { w.size += 2; w.dist *= 1.15; } },
       ],
     },
     rockets: {
@@ -232,21 +271,21 @@
       ],
     },
   };
-  const WEAPON_ORDER = ['laser', 'lightning', 'blades', 'rockets'];
+  const WEAPON_ORDER = ['laser', 'lightning', 'boomerang', 'rockets'];
 
   // ---------- Upgrades (for all weapons) ----------
   const UPGRADES = [
     { name: 'Damage', icon: 'D', color: '#ef4b5b', desc: 'Damage +30%.', ok: () => true, apply: (p) => { p.w.dmg *= 1.3; } },
     {
       name: 'Attack Speed', icon: 'A', color: '#ffcd75', desc: 'Attack 20% faster.',
-      ok: (p) => (p.weapon === 'blades' ? p.w.spin < 10 : p.w.cd > WEAPONS[p.weapon].minCd),
-      apply: (p) => { if (p.weapon === 'blades') { p.w.spin *= 1.2; p.w.hitCd *= 0.85; } else p.w.cd *= 0.8; },
+      ok: (p) => p.w.cd > WEAPONS[p.weapon].minCd,
+      apply: (p) => { p.w.cd *= 0.8; },
     },
     { name: 'Move Speed', icon: 'S', color: '#73eff7', desc: 'Move 12% faster.', ok: (p) => p.speed < 105, apply: (p) => { p.speed *= 1.12; } },
     { name: 'Max HP', icon: 'H', color: '#ff7a8a', desc: 'Max HP +4. Heal 4 HP.', ok: () => true, apply: (p) => { p.maxHp += 4; p.hp = Math.min(p.maxHp, p.hp + 4); } },
     { name: 'Heal Over Time', icon: '+', color: '#38b764', desc: 'Heal 0.25 HP each second.', ok: (p) => p.regen < 1.5, apply: (p) => { p.regen += 0.25; } },
     { name: 'Pickup Range', icon: 'P', color: '#a7f070', desc: 'Pick up XP from farther.', ok: (p) => p.magnet < 90, apply: (p) => { p.magnet *= 1.5; } },
-    { name: 'Attack Range', icon: 'R', color: '#a45fb8', desc: 'Attack range +20%.', ok: (p) => p.weapon !== 'blades' && p.range < 170, apply: (p) => { p.range *= 1.2; } },
+    { name: 'Attack Range', icon: 'R', color: '#a45fb8', desc: 'Attack range +20%.', ok: (p) => p.range < 170, apply: (p) => { p.range *= 1.2; } },
   ];
 
   // ---------- State ----------
@@ -255,8 +294,10 @@
   let floor = 1, kills = 0, pendingLevels = 0, dieT = 0;
   let best = parseInt(store.get(KEY_BEST, '0'), 10) || 0;
   let map, bg, bgCtx, theme, torches = [];
-  let p, enemies, pending, rockets, beams, zaps, booms, gems, hearts, parts, texts, stairs, fl;
-  let weaponId = store.get(KEY_WEAPON, 'laser');
+  let p, enemies, pending, rangs = [], rockets, beams, zaps, booms, gems, hearts, parts, texts, stairs, fl;
+  // Orbit Blades was replaced by the Boomerang.
+  const weaponFix = (id) => (id === 'blades' ? 'boomerang' : id);
+  let weaponId = weaponFix(store.get(KEY_WEAPON, 'laser'));
   if (!WEAPONS[weaponId]) weaponId = 'laser';
   let camX = 0, camY = 0, camBX = 0, camBY = 0, camSnap = true, shake = 0;
 
@@ -270,47 +311,227 @@
       hp: 10, maxHp: 10, speed: 60, cdT: 0.3, charge: 0,
       magnet: 24, regen: 0, range: 100,
       xp: 0, xpNext: 5, level: 1, inv: 0,
-      weapon: weaponId, w: Object.assign({}, WEAPONS[weaponId].base), orbA: 0,
+      weapon: weaponId, w: Object.assign({}, WEAPONS[weaponId].base),
     };
   }
   function clearLists() {
-    hitfx = []; rings = []; impact.t = 0;
-    enemies = []; pending = []; rockets = []; beams = []; zaps = []; booms = [];
+    hitfx = []; rings = [];
+    enemies = []; pending = []; rockets = []; beams = []; zaps = []; booms = []; rangs = [];
     gems = []; hearts = []; parts = []; texts = [];
   }
 
   // ---------- Room ----------
-  function solidTile(tx, ty) {
-    if (tx < 0 || ty < 0 || tx >= ROOM_W || ty >= ROOM_H) return true;
-    return map[ty * ROOM_W + tx] === 1;
+  // ---------- Areas (the dungeon changes every 5 floors) ----------
+  const AREAS = [
+    {
+      id: 'crypt', name: 'THE CRYPT', monster: null, shapes: ['rect', 'cross', 'L'],
+      theme: { f1: '#3a3333', f2: '#352f2f', sp: '#4a4140', wall: '#1c1718', top: '#5d504c', blood: '#5a1418', bone: '#9c937f' },
+    },
+    {
+      id: 'sewer', name: 'FLOODED SEWER', monster: 'sewer', shapes: ['rect', 'cross', 'ring'],
+      theme: { f1: '#2c3329', f2: '#283025', sp: '#3b4634', wall: '#141a13', top: '#3f4d3a', blood: '#3d2a1a', bone: '#8c8a70', water: '#1d4448', waterHi: '#3f7f7a' },
+    },
+    {
+      id: 'lava', name: 'LAVA CAVES', monster: 'fireimp', shapes: ['cave', 'cave', 'ring'],
+      theme: { f1: '#2f1d19', f2: '#2a1a16', sp: '#4a2a22', wall: '#170b09', top: '#5c2a20', blood: '#6c141b', bone: '#8a7a6a', lava: '#c2410c', lavaHi: '#fbbf24' },
+    },
+    {
+      id: 'cathedral', name: 'BONE CATHEDRAL', monster: 'knight', shapes: ['hall', 'hall', 'cross'],
+      theme: { f1: '#2a2430', f2: '#26202c', sp: '#3a3044', wall: '#120e16', top: '#4f4060', blood: '#55122a', bone: '#a29cb0', carpet: '#5a1420', trim: '#b8912a' },
+    },
+  ];
+  const SIZES = [[13, 17], [15, 23], [19, 29]]; // small, medium, large (tiles)
+  const T_FLOOR = 0, T_WALL = 1, T_WATER = 2, T_LAVA = 3;
+  const DIRS4 = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+  const DIRS8 = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]];
+  let area = AREAS[0], spawn = { x: 120, y: 184 }, carpetCols = null, candles = [];
+  let lavaTiles = [], waterTiles = [], distMap = null, distTile = -1;
+  const areaIndex = (f) => Math.floor((f - 1) / 5) % AREAS.length;
+  const tileAt = (px, py) => {
+    const tx = Math.floor(px / TILE), ty = Math.floor(py / TILE);
+    if (tx < 0 || ty < 0 || tx >= ROOM_W || ty >= ROOM_H) return T_WALL;
+    return map[ty * ROOM_W + tx];
+  };
+
+  // Count (and mark) tiles reachable from the spawn tile.
+  function flood(pass) {
+    const W = ROOM_W, seen = new Uint8Array(W * ROOM_H);
+    const sx = Math.floor(spawn.x / TILE), sy = Math.floor(spawn.y / TILE);
+    const q = [sy * W + sx];
+    seen[q[0]] = 1;
+    for (let i = 0; i < q.length; i++) {
+      const id = q[i], x = id % W, y = (id / W) | 0;
+      for (const [ox, oy] of DIRS4) {
+        const nx = x + ox, ny = y + oy, nid = ny * W + nx;
+        if (nx < 0 || ny < 0 || nx >= W || ny >= ROOM_H || seen[nid] || !pass(map[nid])) continue;
+        seen[nid] = 1; q.push(nid);
+      }
+    }
+    return seen;
+  }
+
+  // Monsters follow this distance map around walls (updated when the hero changes tile).
+  function updateFlow() {
+    const W = ROOM_W, ptx = Math.floor(p.x / TILE), pty = Math.floor(p.y / TILE), id = pty * W + ptx;
+    if (id === distTile || ptx < 0 || pty < 0 || ptx >= W || pty >= ROOM_H) return;
+    distTile = id;
+    distMap.fill(-1);
+    const q = [id];
+    distMap[id] = 0;
+    for (let i = 0; i < q.length; i++) {
+      const c = q[i], x = c % W, y = (c / W) | 0, d = distMap[c];
+      for (const [ox, oy] of DIRS4) {
+        const nx = x + ox, ny = y + oy, n = ny * W + nx;
+        if (nx < 0 || ny < 0 || nx >= W || ny >= ROOM_H || distMap[n] >= 0 || map[n] === T_WALL) continue;
+        distMap[n] = d + 1; q.push(n);
+      }
+    }
+  }
+  function steer(e) {
+    const W = ROOM_W, tx = Math.floor(e.x / TILE), ty = Math.floor(e.y / TILE);
+    if (tx < 0 || ty < 0 || tx >= W || ty >= ROOM_H) return null;
+    const d0 = distMap[ty * W + tx];
+    if (d0 <= 1) return null; // close (or no path): go straight to the hero
+    let best = d0, bx = 0, by = 0;
+    for (const [ox, oy] of DIRS8) {
+      const nx = tx + ox, ny = ty + oy;
+      if (nx < 0 || ny < 0 || nx >= W || ny >= ROOM_H) continue;
+      const v = distMap[ny * W + nx];
+      if (v < 0 || v >= best) continue;
+      if (ox && oy && (solidTile(tx + ox, ty) || solidTile(tx, ty + oy))) continue; // no corner cutting
+      best = v; bx = ox; by = oy;
+    }
+    if (best === d0) return null;
+    const gx = (tx + bx) * TILE + 8 - e.x, gy = (ty + by) * TILE + 8 - e.y, gl = Math.hypot(gx, gy) || 1;
+    return { x: gx / gl, y: gy / gl };
+  }
+
+  function addPillars(W, H) {
+    const want = 3 + randi(3) + Math.min(4, floor >> 1) + (W > 15 ? 3 : 0);
+    const sx = Math.floor(spawn.x / TILE), sy = Math.floor(spawn.y / TILE);
+    for (let i = 0, made = 0; i < 120 && made < want; i++) {
+      const size = Math.random() < 0.4 ? 2 : 1;
+      const tx = 2 + randi(W - 4 - size + 1), ty = 2 + randi(H - 4 - size + 1);
+      if (Math.abs(tx - sx) < 3 && Math.abs(ty - sy) < 3) continue;
+      let free = true;
+      // Each pillar keeps a free ring around it, so no area is closed.
+      for (let y = ty - 1; y <= ty + size && free; y++) {
+        for (let x = tx - 1; x <= tx + size; x++) { if (map[y * W + x]) { free = false; break; } }
+      }
+      if (!free) continue;
+      for (let y = ty; y < ty + size; y++) for (let x = tx; x < tx + size; x++) map[y * W + x] = T_WALL;
+      made++;
+    }
+  }
+
+  // Water or lava pools. Lava never cuts off a part of the room.
+  function addPools(type, count) {
+    const W = ROOM_W, H = ROOM_H;
+    const sx = Math.floor(spawn.x / TILE), sy = Math.floor(spawn.y / TILE);
+    let floorCount = 0;
+    for (let i = 0; i < map.length; i++) if (map[i] === T_FLOOR) floorCount++;
+    for (let n = 0, tries = 0; n < count && tries < 40; tries++) {
+      let x = 2 + randi(W - 4), y = 2 + randi(H - 4);
+      if (map[y * W + x] !== T_FLOOR || Math.abs(x - sx) + Math.abs(y - sy) < 4) continue;
+      const cells = [];
+      const len = 4 + randi(7);
+      for (let k = 0; k < len * 3 && cells.length < len; k++) {
+        const id = y * W + x;
+        if (map[id] === T_FLOOR && Math.abs(x - sx) + Math.abs(y - sy) >= 3) { map[id] = type; cells.push(id); }
+        const [ox, oy] = DIRS4[randi(4)];
+        x = clamp(x + ox, 1, W - 2); y = clamp(y + oy, 1, H - 2);
+      }
+      if (type === T_LAVA) {
+        const seen = flood((v) => v === T_FLOOR);
+        let reach = 0;
+        for (let i = 0; i < map.length; i++) if (seen[i] && map[i] === T_FLOOR) reach++;
+        if (reach < floorCount - cells.length) { for (const id of cells) map[id] = T_FLOOR; continue; }
+      }
+      floorCount -= cells.length;
+      n++;
+    }
   }
 
   function genRoom() {
-    map = new Uint8Array(ROOM_W * ROOM_H);
-    for (let x = 0; x < ROOM_W; x++) { map[x] = 1; map[(ROOM_H - 1) * ROOM_W + x] = 1; }
-    for (let y = 0; y < ROOM_H; y++) { map[y * ROOM_W] = 1; map[y * ROOM_W + ROOM_W - 1] = 1; }
+    area = AREAS[areaIndex(floor)];
+    theme = area.theme;
+    const sz = floor === 1 ? SIZES[1] : SIZES[randi(SIZES.length)];
+    ROOM_W = sz[0]; ROOM_H = sz[1]; RW = ROOM_W * TILE; RH = ROOM_H * TILE;
+    const W = ROOM_W, H = ROOM_H, cx = W >> 1, cy = H >> 1;
+    map = new Uint8Array(W * H);
+    const wallRect = (x0, y0, x1, y1) => {
+      for (let y = Math.max(0, y0); y <= Math.min(H - 1, y1); y++) for (let x = Math.max(0, x0); x <= Math.min(W - 1, x1); x++) map[y * W + x] = T_WALL;
+    };
+    wallRect(0, 0, W - 1, 0); wallRect(0, H - 1, W - 1, H - 1); wallRect(0, 0, 0, H - 1); wallRect(W - 1, 0, W - 1, H - 1);
 
-    // Pillars. Each pillar keeps a free ring around it, so no area is closed.
-    const want = 3 + randi(3) + Math.min(4, floor >> 1);
-    const cx = ROOM_W >> 1, cy = ROOM_H >> 1;
-    for (let i = 0, made = 0; i < 80 && made < want; i++) {
-      const size = Math.random() < 0.4 ? 2 : 1;
-      const tx = 2 + randi(ROOM_W - 4 - size + 1);
-      const ty = 2 + randi(ROOM_H - 4 - size + 1);
-      if (Math.abs(tx - cx) < 3 && Math.abs(ty - cy) < 3) continue;
-      let free = true;
-      for (let y = ty - 1; y <= ty + size && free; y++) {
-        for (let x = tx - 1; x <= tx + size; x++) { if (map[y * ROOM_W + x]) { free = false; break; } }
+    const shape = area.shapes[randi(area.shapes.length)];
+    carpetCols = null;
+    if (shape === 'cross') {
+      const bw = Math.round(W * 0.3), bh = Math.round(H * 0.28);
+      wallRect(1, 1, bw, bh); wallRect(W - 1 - bw, 1, W - 2, bh);
+      wallRect(1, H - 1 - bh, bw, H - 2); wallRect(W - 1 - bw, H - 1 - bh, W - 2, H - 2);
+    } else if (shape === 'L') {
+      const bw = Math.round(W * 0.45), bh = Math.round(H * 0.42);
+      const left = Math.random() < 0.5, top = Math.random() < 0.5;
+      const x0 = left ? 1 : W - 1 - bw, y0 = top ? 1 : H - 1 - bh;
+      wallRect(x0, y0, x0 + bw - 1, y0 + bh - 1);
+    } else if (shape === 'ring') {
+      const hw = Math.max(1, Math.round(W * 0.15)), hh = Math.max(2, Math.round(H * 0.14));
+      wallRect(cx - hw, cy - hh, cx + hw, cy + hh);
+    } else if (shape === 'cave') {
+      // Round cave: an oval with rough edges and rocks, then smoothed.
+      for (let y = 1; y < H - 1; y++) {
+        for (let x = 1; x < W - 1; x++) {
+          const ex = (x - cx) / (W / 2 - 1), ey = (y - cy) / (H / 2 - 1);
+          if (ex * ex + ey * ey > 0.8 + rand(-0.18, 0.18) || Math.random() < 0.1) map[y * W + x] = T_WALL;
+        }
       }
-      if (!free) continue;
-      for (let y = ty; y < ty + size; y++) for (let x = tx; x < tx + size; x++) map[y * ROOM_W + x] = 1;
-      made++;
+      for (let pass = 0; pass < 3; pass++) {
+        const next = map.slice();
+        for (let y = 1; y < H - 1; y++) {
+          for (let x = 1; x < W - 1; x++) {
+            let n = 0;
+            for (const [ox, oy] of DIRS8) n += map[(y + oy) * W + x + ox] === T_WALL ? 1 : 0;
+            next[y * W + x] = n >= 5 ? T_WALL : n <= 2 ? T_FLOOR : map[y * W + x];
+          }
+        }
+        map = next;
+      }
+    } else if (shape === 'hall') {
+      // Long rows of pillars, with a carpet down the middle.
+      for (let y = 3; y < H - 3; y += 3) { map[y * W + 3] = T_WALL; map[y * W + W - 4] = T_WALL; }
+      carpetCols = [cx - 1, cx, cx + 1];
     }
-    theme = THEMES[Math.floor((floor - 1) / 2) % THEMES.length];
+
+    // Start point: the open tile nearest to the center.
+    let bestD = 1e9;
+    for (let y = 1; y < H - 1; y++) {
+      for (let x = 1; x < W - 1; x++) {
+        if (map[y * W + x] !== T_FLOOR) continue;
+        const d = (x - cx) * (x - cx) + (y - cy) * (y - cy);
+        if (d < bestD) { bestD = d; spawn = { x: x * TILE + 8, y: y * TILE + 8 }; }
+      }
+    }
+    if (shape === 'rect' || shape === 'cross' || shape === 'L') addPillars(W, H);
+
+    // Close parts that the hero cannot reach.
+    const seen = flood((v) => v !== T_WALL);
+    for (let i = 0; i < map.length; i++) if (!seen[i]) map[i] = T_WALL;
+
+    if (area.id === 'sewer') addPools(T_WATER, 3 + randi(3) + (W > 15 ? 2 : 0));
+    if (area.id === 'lava') addPools(T_LAVA, 3 + randi(3) + (W > 15 ? 2 : 0));
+    lavaTiles = []; waterTiles = [];
+    for (let i = 0; i < map.length; i++) {
+      if (map[i] === T_LAVA) lavaTiles.push(i);
+      else if (map[i] === T_WATER) waterTiles.push(i);
+    }
+    distMap = new Int16Array(W * H);
+    distTile = -1;
+
     // Torches on wall faces (a wall tile with floor under it), not too close together.
     torches = [];
-    for (let ty = 0; ty < ROOM_H - 1; ty++) {
-      for (let tx = 1; tx < ROOM_W - 1; tx++) {
+    for (let ty = 0; ty < H - 1; ty++) {
+      for (let tx = 1; tx < W - 1; tx++) {
         if (!solidTile(tx, ty) || solidTile(tx, ty + 1)) continue;
         if (Math.random() > 0.3) continue;
         const x = tx * TILE + 8, y = ty * TILE + 8;
@@ -318,7 +539,19 @@
         torches.push({ x, y, seed: Math.random() * 10 });
       }
     }
+    // Candles next to the cathedral pillars
+    candles = [];
+    if (shape === 'hall') {
+      for (let y = 3; y < H - 3; y += 3) {
+        for (const x of [4, W - 5]) if (map[y * W + x] === T_FLOOR && Math.random() < 0.7) candles.push({ x: x * TILE + 5 + randi(6), y: y * TILE + 6, seed: Math.random() * 10 });
+      }
+    }
     renderRoom();
+  }
+
+  function solidTile(tx, ty) {
+    if (tx < 0 || ty < 0 || tx >= ROOM_W || ty >= ROOM_H) return true;
+    return map[ty * ROOM_W + tx] === 1;
   }
 
   function renderRoom() {
@@ -326,58 +559,149 @@
     bg.width = RW; bg.height = RH;
     const b = bg.getContext('2d');
     bgCtx = b;
+    const W = ROOM_W;
     for (let ty = 0; ty < ROOM_H; ty++) {
-      for (let tx = 0; tx < ROOM_W; tx++) {
-        const x = tx * TILE, y = ty * TILE;
-        if (solidTile(tx, ty)) {
+      for (let tx = 0; tx < W; tx++) {
+        const x = tx * TILE, y = ty * TILE, v = map[ty * W + tx];
+        if (v === T_WALL) {
           b.fillStyle = theme.wall; b.fillRect(x, y, TILE, TILE);
           b.fillStyle = theme.top; b.fillRect(x, y, TILE, 2);
           b.fillStyle = PAL.k;
           b.fillRect(x, y + 7, TILE, 1);
           b.fillRect(x + ((ty & 1) ? 4 : 11), y + 2, 1, 5);
           b.fillRect(x + ((ty & 1) ? 11 : 4), y + 8, 1, 8);
-          if (!solidTile(tx, ty + 1)) { b.fillStyle = 'rgba(0,0,0,.35)'; b.fillRect(x, y + TILE, TILE, 3); }
-        } else {
-          b.fillStyle = ((tx + ty) & 1) ? theme.f1 : theme.f2;
-          b.fillRect(x, y, TILE, TILE);
-          b.fillStyle = theme.sp;
-          for (let i = 0; i < 3; i++) b.fillRect(x + randi(15), y + randi(15), 1, 1);
-          if (Math.random() < 0.12) { b.fillRect(x + 3 + randi(8), y + 3 + randi(8), 3, 1); }
-          // Cracks
-          if (Math.random() < 0.1) {
-            b.fillStyle = theme.wall;
-            let cx = x + 2 + randi(10), cy = y + 2 + randi(10);
-            for (let i = 0; i < 5; i++) { b.fillRect(cx, cy, 1, 1); cx += randi(3) - 1; cy += 1; }
-          }
-          // Old blood stains
-          if (Math.random() < 0.06) {
-            b.fillStyle = theme.blood;
-            const bx = x + 3 + randi(8), by = y + 3 + randi(8);
-            for (let i = 0; i < 9; i++) b.fillRect(bx + randi(6) - 2, by + randi(4) - 1, 1 + randi(2), 1 + randi(2));
-          }
-          // Bones and skulls
-          const rb = Math.random();
-          if (rb < 0.05) {
-            b.fillStyle = theme.bone;
-            const bx = x + 3 + randi(8), by = y + 4 + randi(8);
-            if (Math.random() < 0.5) { b.fillRect(bx, by, 5, 1); b.fillRect(bx - 1, by - 1, 1, 3); b.fillRect(bx + 5, by - 1, 1, 3); }
-            else { b.fillRect(bx, by, 1, 5); b.fillRect(bx - 1, by - 1, 3, 1); b.fillRect(bx - 1, by + 5, 3, 1); }
-          } else if (rb < 0.065) {
-            const bx = x + 4 + randi(7), by = y + 4 + randi(7);
-            b.fillStyle = theme.bone; b.fillRect(bx, by, 4, 3); b.fillRect(bx + 1, by + 3, 2, 1);
-            b.fillStyle = PAL.k; b.fillRect(bx + 1, by + 1, 1, 1); b.fillRect(bx + 3, by + 1, 1, 1);
-          }
+          continue;
+        }
+        if (v === T_WATER) {
+          b.fillStyle = theme.water; b.fillRect(x, y, TILE, TILE);
+          b.fillStyle = theme.waterHi;
+          for (let i = 0; i < 3; i++) b.fillRect(x + 1 + randi(10), y + 2 + randi(12), 3 + randi(3), 1);
+          // Stone edge where the water meets the floor
+          b.fillStyle = 'rgba(0,0,0,.35)';
+          if (tileIs(tx, ty - 1, T_FLOOR)) b.fillRect(x, y, TILE, 2);
+          continue;
+        }
+        if (v === T_LAVA) {
+          b.fillStyle = theme.lava; b.fillRect(x, y, TILE, TILE);
+          b.fillStyle = '#7c2d12';
+          for (let i = 0; i < 4; i++) b.fillRect(x + randi(13), y + randi(13), 2 + randi(3), 2 + randi(2));
+          b.fillStyle = theme.lavaHi;
+          for (let i = 0; i < 3; i++) b.fillRect(x + randi(14), y + randi(14), 2, 1);
+          continue;
+        }
+        // Floor
+        b.fillStyle = ((tx + ty) & 1) ? theme.f1 : theme.f2;
+        b.fillRect(x, y, TILE, TILE);
+        b.fillStyle = theme.sp;
+        for (let i = 0; i < 3; i++) b.fillRect(x + randi(15), y + randi(15), 1, 1);
+        if (Math.random() < 0.12) b.fillRect(x + 3 + randi(8), y + 3 + randi(8), 3, 1);
+        if (carpetCols && carpetCols.includes(tx)) {
+          b.fillStyle = theme.carpet; b.fillRect(x, y, TILE, TILE);
+          b.fillStyle = theme.trim;
+          if (tx === carpetCols[0]) b.fillRect(x + 1, y, 1, TILE);
+          if (tx === carpetCols[carpetCols.length - 1]) b.fillRect(x + TILE - 2, y, 1, TILE);
+          if (tx === carpetCols[1] && ty % 3 === 0) { b.fillRect(x + 6, y + 6, 4, 4); b.fillStyle = theme.carpet; b.fillRect(x + 7, y + 7, 2, 2); }
+          continue;
+        }
+        // Cracks (glowing in the lava caves)
+        if (Math.random() < (area.id === 'lava' ? 0.22 : 0.1)) {
+          b.fillStyle = area.id === 'lava' ? '#9a3412' : theme.wall;
+          let cx = x + 2 + randi(10), cy = y + 2 + randi(10);
+          for (let i = 0; i < 5; i++) { b.fillRect(cx, cy, 1, 1); cx += randi(3) - 1; cy += 1; }
+        }
+        // Moss in the sewer
+        if (area.id === 'sewer' && Math.random() < 0.25) {
+          b.fillStyle = '#3f5a2a';
+          const mx = x + randi(12), my = y + randi(12);
+          for (let i = 0; i < 5; i++) b.fillRect(mx + randi(4), my + randi(3), 1, 1);
+        }
+        // Old blood stains
+        if (Math.random() < 0.06) {
+          b.fillStyle = theme.blood;
+          const bx = x + 3 + randi(8), by = y + 3 + randi(8);
+          for (let i = 0; i < 9; i++) b.fillRect(bx + randi(6) - 2, by + randi(4) - 1, 1 + randi(2), 1 + randi(2));
+        }
+        // Bones and skulls
+        const rb = Math.random();
+        if (rb < 0.05) {
+          b.fillStyle = theme.bone;
+          const bx = x + 3 + randi(8), by = y + 4 + randi(8);
+          if (Math.random() < 0.5) { b.fillRect(bx, by, 5, 1); b.fillRect(bx - 1, by - 1, 1, 3); b.fillRect(bx + 5, by - 1, 1, 3); }
+          else { b.fillRect(bx, by, 1, 5); b.fillRect(bx - 1, by - 1, 3, 1); b.fillRect(bx - 1, by + 5, 3, 1); }
+        } else if (rb < 0.065) {
+          const bx = x + 4 + randi(7), by = y + 4 + randi(7);
+          b.fillStyle = theme.bone; b.fillRect(bx, by, 4, 3); b.fillRect(bx + 1, by + 3, 2, 1);
+          b.fillStyle = PAL.k; b.fillRect(bx + 1, by + 1, 1, 1); b.fillRect(bx + 3, by + 1, 1, 1);
+        } else if (area.id === 'crypt' && rb < 0.085) {
+          // Coffin (flat, you can walk over it)
+          const bx = x + 4, by = y + 1;
+          b.fillStyle = PAL.k; b.fillRect(bx - 1, by - 1, 9, 15);
+          b.fillStyle = '#4a3226'; b.fillRect(bx, by, 7, 13);
+          b.fillStyle = '#6b4a35'; b.fillRect(bx + 1, by + 1, 5, 11);
+          b.fillStyle = '#9c937f'; b.fillRect(bx + 3, by + 3, 1, 5); b.fillRect(bx + 2, by + 4, 3, 1);
+        } else if (area.id === 'sewer' && rb < 0.08) {
+          // Drain grate
+          const bx = x + 4, by = y + 4;
+          b.fillStyle = PAL.k; b.fillRect(bx, by, 8, 8);
+          b.fillStyle = '#4a5250';
+          for (let i = 0; i < 4; i++) b.fillRect(bx + 1 + i * 2, by + 1, 1, 6);
         }
       }
     }
-    // Wall shadows on floor below walls are drawn after, so draw once more for cover.
+    // Shadow on the floor under each wall face
     for (let ty = 0; ty < ROOM_H - 1; ty++) {
-      for (let tx = 0; tx < ROOM_W; tx++) {
+      for (let tx = 0; tx < W; tx++) {
         if (solidTile(tx, ty) && !solidTile(tx, ty + 1)) {
           b.fillStyle = 'rgba(0,0,0,.3)';
           b.fillRect(tx * TILE, (ty + 1) * TILE, TILE, 3);
         }
       }
+    }
+  }
+  function tileIs(tx, ty, v) {
+    if (tx < 0 || ty < 0 || tx >= ROOM_W || ty >= ROOM_H) return false;
+    return map[ty * ROOM_W + tx] === v;
+  }
+
+  // Moving light lines on water (drawn before the darkness).
+  function drawWater() {
+    if (!waterTiles.length) return;
+    g.fillStyle = theme.waterHi;
+    g.globalAlpha = 0.35;
+    for (const id of waterTiles) {
+      const tx = id % ROOM_W, ty = (id / ROOM_W) | 0;
+      const x = tx * TILE - camX, y = ty * TILE - camY;
+      if (x < -TILE || y < -TILE || x > viewW || y > viewH) continue;
+      for (let i = 0; i < 2; i++) {
+        const ox = ((t * 6 + i * 8 + tx * 5 + ty * 3) % 14);
+        g.fillRect(x + ox, y + 4 + i * 7, 3, 1);
+      }
+    }
+    g.globalAlpha = 1;
+  }
+  // Slow lava glow (drawn after the darkness, so it shines). Slow pulse, no flashing.
+  function drawLavaGlow() {
+    if (!lavaTiles.length) return;
+    g.save();
+    g.globalCompositeOperation = 'lighter';
+    for (const id of lavaTiles) {
+      const tx = id % ROOM_W, ty = (id / ROOM_W) | 0;
+      const x = tx * TILE - camX, y = ty * TILE - camY;
+      if (x < -TILE || y < -TILE || x > viewW || y > viewH) continue;
+      g.globalAlpha = 0.2 + 0.08 * Math.sin(t * 1.4 + tx * 0.7 + ty * 0.5);
+      g.fillStyle = '#ff7a1a';
+      g.fillRect(x, y, TILE, TILE);
+    }
+    g.restore();
+  }
+  function drawCandles() {
+    for (const c of candles) {
+      const x = c.x - camX, y = c.y - camY;
+      const f = Math.sin(t * 7 + c.seed) * 0.5;
+      g.fillStyle = PAL.k; g.fillRect(x - 1.5, y, 3, 5);
+      g.fillStyle = '#e8e0c8'; g.fillRect(x - 1, y, 2, 4);
+      glow(c.x, c.y - 2, 6, '#ffb347', 0.5);
+      g.fillStyle = '#ffcd75'; g.fillRect(x - 0.5, y - 3 + f * 0.5, 1, 2.5);
     }
   }
 
@@ -412,11 +736,11 @@
   function freeSpot(minDist) {
     for (let i = 0; i < 60; i++) {
       const tx = 1 + randi(ROOM_W - 2), ty = 1 + randi(ROOM_H - 2);
-      if (solidTile(tx, ty)) continue;
+      if (map[ty * ROOM_W + tx] !== T_FLOOR) continue;
       const x = tx * TILE + 8, y = ty * TILE + 8;
       if (Math.hypot(x - p.x, y - p.y) >= minDist) return { x, y };
     }
-    return { x: RW / 2, y: TILE * 2 + 8 };
+    return { x: spawn.x, y: spawn.y };
   }
 
   // ---------- Floors ----------
@@ -434,13 +758,17 @@
       const s = freeSpot(90);
       pending.push({ type: 'boss', x: s.x, y: s.y, t: 1.4 });
     }
-    showBanner(boss ? 'FLOOR ' + floor + '\nBOSS!' : 'FLOOR ' + floor);
+    let text = 'FLOOR ' + floor;
+    if ((floor - 1) % 5 === 0) text += '\n' + area.name; // a new area starts
+    if (boss) text += '\nBOSS!';
+    showBanner(text);
   }
 
   function pickType() {
     const w = [['slime', 5]];
     if (floor >= 2) w.push(['bat', 2 + Math.min(4, floor * 0.5)]);
     if (floor >= 3) w.push(['skel', 1 + Math.min(5, floor * 0.6)]);
+    if (area.monster) w.push([area.monster, 3 + Math.min(4, floor * 0.15)]);
     let sum = 0; for (const [, n] of w) sum += n;
     let r = Math.random() * sum;
     for (const [k, n] of w) { r -= n; if (r <= 0) return k; }
@@ -456,6 +784,7 @@
       speed: d.speed * sm * rand(0.9, 1.1),
       dmg: d.dmg + Math.floor((floor - 1) / 4), xp: d.xp,
       flash: 0, anim: Math.random() * 2, kx: 0, ky: 0, summonT: 4, phase: Math.random() * 6.28,
+      dashCd: 2 + Math.random(), dash: 0, warn: 0, ddx: 0, ddy: 0,
     };
   }
 
@@ -474,12 +803,13 @@
       if (window.PD_CLOUD) window.PD_CLOUD.saveBest(best);
     }
     sfx.stairs();
-    p.x = RW / 2; p.y = RH / 2; p.vx = 0; p.vy = 0;
+    p.vx = 0; p.vy = 0;
     camSnap = true;
     p.hp = Math.min(p.maxHp, p.hp + 2);
     clearLists();
     stairs = null;
     genRoom();
+    p.x = spawn.x; p.y = spawn.y;
     startFloor();
   }
 
@@ -490,6 +820,7 @@
     clearLists();
     stairs = null;
     genRoom();
+    p.x = spawn.x; p.y = spawn.y;
   }
 
   // ---------- Combat ----------
@@ -520,7 +851,6 @@
   }
 
   function updateWeapon(dt) {
-    if (p.weapon === 'blades') { updateBlades(dt); return; }
     p.cdT -= dt;
     const tg = nearestEnemy(p.range);
     const W = WEAPONS[p.weapon];
@@ -539,6 +869,7 @@
     spark(p.x, p.y - 2, W.glow, 8, 90, 0.3, 1.6);
     if (p.weapon === 'laser') fireLaser(tg);
     else if (p.weapon === 'lightning') fireLightning(tg);
+    else if (p.weapon === 'boomerang') fireBoomerangs(tg);
     else fireRockets(tg);
   }
 
@@ -610,7 +941,15 @@
         cur = nearestFrom(cx, cy, w.jump, used);
         n++;
       }
-      zaps.push({ pts, life: 0.28, max: 0.28 });
+      // Make the zigzag shape once, so the bolt does not flicker.
+      const segs = [];
+      for (let i = 0; i < pts.length - 1; i++) {
+        const main = jag(pts[i].x, pts[i].y, pts[i + 1].x, pts[i + 1].y, 3);
+        let branch = null;
+        if (Math.random() < 0.5) { const m = main[randi(main.length)]; branch = jag(m.x, m.y, m.x + rand(-9, 9), m.y + rand(-9, 9), 2); }
+        segs.push({ main, branch });
+      }
+      zaps.push({ pts, segs, life: 0.28, max: 0.28 });
     }
     shake = Math.max(shake, 1);
     sfx.zap();
@@ -620,28 +959,58 @@
     zaps = zaps.filter((z) => z.life > 0);
   }
 
-  // ----- Orbit blades -----
-  function bladePos(i) {
-    const w = p.w, a = p.orbA + (i * Math.PI * 2) / w.count;
-    return { a, x: p.x + Math.cos(a) * w.radius, y: p.y - 2 + Math.sin(a) * w.radius };
-  }
-  function updateBlades(dt) {
-    const w = p.w;
-    p.orbA += w.spin * dt;
+  // ----- Boomerang -----
+  // Thrown toward a monster; a pull back to the hero makes it slow down and return.
+  // Each monster can be hit once on the way out and once on the way back.
+  const RANG_SPEED = 170;
+  function fireBoomerangs(tg) {
+    const w = p.w, base = Math.atan2(tg.y - p.y, tg.x - p.x);
+    const maxD = p.range * 0.85 * w.dist;
     for (let i = 0; i < w.count; i++) {
-      const b = bladePos(i);
+      const a = base + (i - (w.count - 1) / 2) * 0.38;
+      rangs.push({
+        x: p.x, y: p.y - 2, vx: Math.cos(a) * RANG_SPEED, vy: Math.sin(a) * RANG_SPEED,
+        pull: (RANG_SPEED * RANG_SPEED) / (2 * maxD), back: false, life: 4, spin: Math.random() * 6,
+        hitOut: new Set(), hitBack: new Set(), trail: [],
+      });
+    }
+    sfx.throw();
+  }
+  function updateRangs(dt) {
+    const w = p.w, W = WEAPONS.boomerang;
+    for (const r of rangs) {
+      r.life -= dt;
+      r.spin += dt * 22;
+      const hx = p.x - r.x, hy = p.y - 2 - r.y, hd = Math.hypot(hx, hy) || 1;
+      if (!r.back) {
+        r.vx += (hx / hd) * r.pull * dt;
+        r.vy += (hy / hd) * r.pull * dt;
+        if (r.vx * hx + r.vy * hy > 0) r.back = true; // it turned around
+        if (solidTile(Math.floor(r.x / TILE), Math.floor(r.y / TILE))) { r.back = true; spark(r.x, r.y, W.glow, 4, 40, 0.25); }
+      } else {
+        // Fly back to the hero (over walls), a little faster each moment.
+        const sp = Math.min(260, Math.hypot(r.vx, r.vy) + 300 * dt);
+        r.vx = (hx / hd) * sp; r.vy = (hy / hd) * sp;
+        if (hd < 7) { r.dead = true; continue; }
+      }
+      r.x += r.vx * dt; r.y += r.vy * dt;
+      r.trail.unshift({ x: r.x, y: r.y });
+      if (r.trail.length > 9) r.trail.pop();
+      if (r.life <= 0) { r.dead = true; continue; }
+      const set = r.back ? r.hitBack : r.hitOut;
+      const sp = Math.hypot(r.vx, r.vy) || 1;
       for (const e of enemies) {
-        if (e.dead || t < (e.bladeT || 0)) continue;
-        const dx = e.x - b.x, dy = e.y - b.y;
-        if (dx * dx + dy * dy < (e.r + 3) * (e.r + 3)) {
-          const ox = e.x - p.x, oy = e.y - p.y, d = Math.hypot(ox, oy) || 1;
-          e.bladeT = t + w.hitCd;
-          hurtEnemy(e, wDmg(), ox / d, oy / d, 0.8);
-          spark(b.x, b.y, WEAPONS.blades.glow, 5, 60, 0.25);
+        if (e.dead || set.has(e)) continue;
+        const dx = e.x - r.x, dy = e.y - r.y, rr = e.r + w.size * 0.6;
+        if (dx * dx + dy * dy < rr * rr) {
+          set.add(e);
+          hurtEnemy(e, wDmg(), r.vx / sp, r.vy / sp, 0.8);
+          spark(r.x, r.y, W.glow, 5, 60, 0.25);
           sfx.blade();
         }
       }
     }
+    rangs = rangs.filter((r) => !r.dead);
   }
 
   // ----- Fire rockets -----
@@ -663,7 +1032,6 @@
       if (d < r + e.r) { hurtEnemy(e, wDmg(), dx / (d || 1), dy / (d || 1), 1.3); nHit++; }
     }
     ring(x, y, 4, r * 1.3, '#ffd27a', 0.35, 2.5);
-    if (nHit >= 3) impactFrame(x, y);
     booms.push({ x, y, r, life: 0.45, max: 0.45 });
     spark(x, y, '#ffd27a', 14, 110, 0.45, 2);
     spark(x, y, '#ff6a1a', 10, 70, 0.5, 2);
@@ -708,6 +1076,7 @@
   }
 
   function updateWeaponFx(dt) {
+    updateRangs(dt);
     updateBeams(dt);
     updateZaps(dt);
     updateRockets(dt);
@@ -733,10 +1102,7 @@
     hitSpark(e.x, e.y - 1, dirX, dirY, W.color, crit);
     addNum(e.x + rand(-2, 2), e.y - 8, String(Math.max(1, Math.round(dmg))) + (crit ? '!' : ''), crit ? 'crit' : 'hit');
     if (crit) { ring(e.x, e.y, 2, 16, '#ffffff', 0.25, 1.5); shake = Math.max(shake, 1.5); sfx.crit(); } else sfx.hit();
-    if (e.hp <= 0) {
-      killEnemy(e);
-      if (crit || e.type === 'boss') impactFrame(e.x, e.y);
-    }
+    if (e.hp <= 0) killEnemy(e);
   }
 
   function killEnemy(e) {
@@ -752,6 +1118,9 @@
       shake = 6;
     } else {
       gems.push({ x: e.x, y: e.y, vx: rand(-20, 20), vy: rand(-20, 20), v: e.xp });
+      if (e.type === 'sewer' && !e.small) {
+        for (let i = 0; i < 2; i++) pending.push({ type: 'sewer', small: true, x: e.x + rand(-5, 5), y: e.y + rand(-5, 5), t: 0.05 });
+      }
       if (Math.random() < 0.04) hearts.push({ x: e.x + rand(-4, 4), y: e.y + rand(-4, 4) });
     }
   }
@@ -804,8 +1173,10 @@
     if (m > 1) { mx /= m; my /= m; }
     // Ease the speed to the joystick value: soft but fast start and stop.
     // Instant control: the hero moves and stops with the finger.
-    p.vx = mx * p.speed;
-    p.vy = my * p.speed;
+    const under = tileAt(p.x, p.y);
+    const slow = under === T_WATER ? 0.6 : 1;
+    p.vx = mx * p.speed * slow;
+    p.vy = my * p.speed * slow;
     const ox = p.x, oy = p.y;
     p.x += p.vx * dt;
     p.y += p.vy * dt;
@@ -817,6 +1188,11 @@
     if (p.moving) p.anim += dt * Math.min(1, sp / p.speed);
     if (mx < -0.1) p.face = -1; else if (mx > 0.1) p.face = 1;
     if (p.inv > 0) p.inv -= dt;
+    if (tileAt(p.x, p.y) === T_LAVA && p.inv <= 0) {
+      spark(p.x, p.y + 3, '#ff7a1a', 6, 40, 0.35, 1.5);
+      hurtPlayer(1, null);
+      if (state !== 'play') return;
+    }
     if (p.regen) p.hp = Math.min(p.maxHp, p.hp + p.regen * dt);
 
     // Weapon (attacks automatically)
@@ -832,24 +1208,42 @@
     }
     for (const s of pending) {
       s.t -= dt;
-      if (s.t <= 0) { enemies.push(makeEnemy(s.type, s.x, s.y)); s.done = true; }
+      if (s.t <= 0) {
+        const en = makeEnemy(s.type, s.x, s.y);
+        if (s.small) { en.small = true; en.r = 3; en.hp = en.maxHp = en.maxHp * 0.35; en.speed *= 1.5; en.xp = 1; }
+        enemies.push(en); s.done = true;
+      }
     }
     pending = pending.filter((s) => !s.done);
 
-    // Enemies
+    // Enemies (they walk around walls with the distance map)
+    updateFlow();
     for (const e of enemies) {
       e.anim += dt;
       if (e.flash > 0) e.flash -= dt;
       let dx = p.x - e.x, dy = p.y - e.y;
       const d = Math.hypot(dx, dy) || 1;
       dx /= d; dy /= d;
-      if (e.type === 'bat') {
+      const path = e.type === 'boss' ? null : steer(e);
+      if (path) { dx = path.x; dy = path.y; }
+      if (e.type === 'bat' || e.type === 'fireimp') {
         const wob = Math.sin(t * 6 + e.phase) * 0.7;
         const ox = dx;
         dx += -dy * wob; dy += ox * wob;
       }
-      e.x += (dx * e.speed + e.kx) * dt;
-      e.y += (dy * e.speed + e.ky) * dt;
+      let spd = e.speed;
+      if (!ETYPES[e.type].fly && tileAt(e.x, e.y) === T_WATER) spd *= 0.6;
+      if (e.type === 'knight') {
+        // Bone Knight: stops for a moment, then charges.
+        e.dashCd -= dt;
+        if (e.dash > 0) { e.dash -= dt; dx = e.ddx; dy = e.ddy; spd *= 3.2; }
+        else if (e.warn > 0) {
+          e.warn -= dt; spd = 0;
+          if (e.warn <= 0) { e.dash = 0.45; e.ddx = dx; e.ddy = dy; }
+        } else if (e.dashCd <= 0 && d < 80 && d > 18) { e.warn = 0.4; e.dashCd = 3.2; }
+      }
+      e.x += (dx * spd + e.kx) * dt;
+      e.y += (dy * spd + e.ky) * dt;
       const f = Math.exp(-9 * dt);
       e.kx *= f; e.ky *= f;
       collide(e);
@@ -1072,7 +1466,7 @@
     const L = WEAPONS.laser;
     for (const b of beams) {
       const k = b.life / b.max;
-      const wdt = b.width * (0.35 + 0.65 * k) * rand(0.85, 1.15);
+      const wdt = b.width * (0.35 + 0.65 * k);
       const x1 = b.x + b.dx * b.len, y1 = b.y + b.dy * b.len;
       glowLine([{ x: b.x, y: b.y }, { x: x1, y: y1 }], wdt, L.color, Math.min(1, k * 1.6));
       glow(b.x, b.y, 6 + wdt * 2, L.glow, k);
@@ -1083,57 +1477,37 @@
     const Z = WEAPONS.lightning;
     for (const z of zaps) {
       const k = z.life / z.max;
-      for (let i = 0; i < z.pts.length - 1; i++) {
-        const a = z.pts[i], b = z.pts[i + 1];
-        const main = jag(a.x, a.y, b.x, b.y, 3);
-        glowLine(main, 1.6, Z.glow, k * 0.8);
-        glowLine(main, 1.1, Z.color, k);
-        // Small side branch
-        if (Math.random() < 0.5) {
-          const m = main[randi(main.length)];
-          glowLine(jag(m.x, m.y, m.x + rand(-9, 9), m.y + rand(-9, 9), 2), 0.7, Z.color, k * 0.8);
-        }
+      for (let i = 0; i < z.segs.length; i++) {
+        const sg = z.segs[i], b = z.pts[i + 1];
+        glowLine(sg.main, 1.6, Z.glow, k * 0.8);
+        glowLine(sg.main, 1.1, Z.color, k);
+        if (sg.branch) glowLine(sg.branch, 0.7, Z.color, k * 0.8);
         glow(b.x, b.y, 9, Z.color, k * 0.9);
       }
       glow(z.pts[0].x, z.pts[0].y, 8, Z.glow, k);
     }
 
-    // Orbit blades
-    if (p && p.weapon === 'blades' && state !== 'dying' && state !== 'over') {
-      const B = WEAPONS.blades, w = p.w;
-      // faint orbit ring
-      g.save();
-      g.globalCompositeOperation = 'lighter';
-      g.globalAlpha = 0.08;
-      g.strokeStyle = B.color;
-      g.lineWidth = 1;
-      g.beginPath(); g.arc(p.x - camX, p.y - 2 - camY, w.radius, 0, Math.PI * 2); g.stroke();
-      g.restore();
-      const dir = 1;
-      for (let i = 0; i < w.count; i++) {
-        const bp = bladePos(i);
-        // Light trail behind the blade
-        const trail = [];
-        const steps = 10, span = 0.9;
-        for (let j = 0; j <= steps; j++) {
-          const a = bp.a - dir * span * (j / steps);
-          trail.push({ x: p.x + Math.cos(a) * w.radius, y: p.y - 2 + Math.sin(a) * w.radius });
-        }
-        for (let j = 0; j < steps; j++) {
-          const f = 1 - j / steps;
-          glowLine([trail[j], trail[j + 1]], 2.2 * f, B.color, 0.55 * f);
-        }
-        glow(bp.x, bp.y, 8, B.glow, 0.7);
-        // Blade body: a spinning diamond
-        g.save();
-        g.translate(bp.x - camX, bp.y - camY);
-        g.rotate(t * 14 + i);
-        g.fillStyle = B.color;
-        g.beginPath(); g.moveTo(0, -4); g.lineTo(1.6, 0); g.lineTo(0, 4); g.lineTo(-1.6, 0); g.closePath(); g.fill();
-        g.fillStyle = '#ffffff';
-        g.beginPath(); g.moveTo(0, -2.5); g.lineTo(0.7, 0); g.lineTo(0, 2.5); g.lineTo(-0.7, 0); g.closePath(); g.fill();
-        g.restore();
+    // Boomerangs: light trail and a spinning gold boomerang
+    const BW = WEAPONS.boomerang;
+    for (const r of rangs) {
+      const k = p.w.size / 5;
+      for (let j = 0; j < r.trail.length - 1; j++) {
+        const f = 1 - j / r.trail.length;
+        glowLine([r.trail[j], r.trail[j + 1]], 2.4 * k * f, BW.color, 0.5 * f);
       }
+      glow(r.x, r.y, 7 * k, BW.glow, 0.6);
+      g.save();
+      g.translate(r.x - camX, r.y - camY);
+      g.rotate(r.spin);
+      g.scale(k, k);
+      g.lineCap = 'round'; g.lineJoin = 'round';
+      g.strokeStyle = PAL.k; g.lineWidth = 2.6;
+      g.beginPath(); g.moveTo(-3.5, -3); g.lineTo(0, 0); g.lineTo(-3.5, 3); g.stroke();
+      g.strokeStyle = BW.color; g.lineWidth = 1.6;
+      g.beginPath(); g.moveTo(-3.5, -3); g.lineTo(0, 0); g.lineTo(-3.5, 3); g.stroke();
+      g.strokeStyle = '#ffffff'; g.lineWidth = 0.5;
+      g.beginPath(); g.moveTo(-3, -2.4); g.lineTo(-0.3, 0); g.stroke();
+      g.restore();
     }
 
     // Rockets
@@ -1154,7 +1528,6 @@
     for (const b of booms) {
       const k = b.life / b.max, e = 1 - k;
       const ease = 1 - Math.pow(1 - e, 3);
-      if (e < 0.15) glow(b.x, b.y, b.r * 1.4, '#ffffff', 1 - e / 0.15);
       glow(b.x, b.y, b.r * (0.5 + 0.7 * ease), '#ff8a2a', k * 1.2);
       glow(b.x, b.y, b.r * (0.3 + 0.4 * ease), '#ffd27a', k);
       g.save();
@@ -1168,9 +1541,8 @@
   }
 
   // ---------- Anime hit effects ----------
-  // Star sparks and slash arcs on hits, energy rings, impact frames with focus lines.
+  // Star sparks and slash arcs on hits, small rings at hit points. No full-screen flashes (photosensitive safety).
   let hitfx = [], rings = [];
-  const impact = { t: 0, x: 0, y: 0, cd: 0 };
   const CRIT_CHANCE = 0.15;
 
   function addNum(x, y, val, kind) {
@@ -1187,17 +1559,11 @@
   function ring(x, y, r0, r1, color, life = 0.3, width = 2) {
     rings.push({ x, y, r0, r1, color, width, life, max: life });
   }
-  function impactFrame(x, y) {
-    if (impact.cd > 0) return;
-    impact.t = 0.09; impact.x = x; impact.y = y; impact.cd = 0.6;
-  }
   function updateAnimeFx(dt) {
     for (const f of hitfx) f.life -= dt;
     hitfx = hitfx.filter((f) => f.life > 0);
     for (const r of rings) r.life -= dt;
     rings = rings.filter((r) => r.life > 0);
-    if (impact.t > 0) impact.t -= dt;
-    if (impact.cd > 0) impact.cd -= dt;
   }
 
   function drawAnimeFx() {
@@ -1261,30 +1627,7 @@
     }
   }
 
-  // Impact frame: a short bright frame with black focus lines (anime style).
-  function drawImpactFrame() {
-    if (impact.t <= 0) return;
-    const k = impact.t / 0.09;
-    const sx = impact.x - camX, sy = impact.y - camY;
-    g.save();
-    g.globalAlpha = 0.22 * k;
-    g.fillStyle = '#ffffff';
-    g.fillRect(0, 0, viewW, viewH);
-    g.globalAlpha = 0.6 * k;
-    g.fillStyle = '#000000';
-    for (let i = 0; i < 28; i++) {
-      const a = (i / 28) * Math.PI * 2 + rand(-0.08, 0.08);
-      const r0 = rand(22, 40), r1 = 260, w = rand(0.3, 1.4);
-      const ca = Math.cos(a), sa = Math.sin(a);
-      g.beginPath();
-      g.moveTo(sx + ca * r0, sy + sa * r0);
-      g.lineTo(sx + ca * r1 - sa * w * 6, sy + sa * r1 + ca * w * 6);
-      g.lineTo(sx + ca * r1 + sa * w * 6, sy + sa * r1 - ca * w * 6);
-      g.closePath();
-      g.fill();
-    }
-    g.restore();
-  }
+
 
   // ---------- Torches and light ----------
   // The dungeon is dark. Light shows only around the hero, torches, and weapon effects.
@@ -1297,6 +1640,9 @@
     const fl1 = 1 + Math.sin(t * 9) * 0.03 + Math.sin(t * 23) * 0.02;
     if (p && state !== 'over') addLight(p.x, p.y - 2, 92 * fl1, state === 'dying' ? Math.max(0, dieT) : 1);
     for (const tc of torches) addLight(tc.x, tc.y + 4, 48 * (1 + Math.sin(t * 11 + tc.seed) * 0.05), 0.95);
+    for (const c of candles) addLight(c.x, c.y, 30, 0.85);
+    for (const id of lavaTiles) addLight((id % ROOM_W) * TILE + 8, ((id / ROOM_W) | 0) * TILE + 8, 22, 0.55);
+    for (const e of enemies) if (e.type === 'fireimp') addLight(e.x, e.y, 18, 0.7);
     if (stairs) addLight(stairs.x, stairs.y, 30, 0.9);
     for (const s of pending) addLight(s.x, s.y, 12, 0.6);
     for (const gm of gems) addLight(gm.x, gm.y, 9, 0.7);
@@ -1308,9 +1654,7 @@
     for (const z of zaps) { const k = z.life / z.max; for (const q of z.pts) addLight(q.x, q.y, 28, k); }
     for (const r of rockets) addLight(r.x, r.y, 22, 0.9);
     for (const b of booms) addLight(b.x, b.y, b.r * 2.4, b.life / b.max);
-    if (p && p.weapon === 'blades' && state !== 'dying' && state !== 'over') {
-      for (let i = 0; i < p.w.count; i++) { const bp = bladePos(i); addLight(bp.x, bp.y, 16, 0.7); }
-    }
+    for (const r of rangs) addLight(r.x, r.y, 18, 0.75);
   }
 
   function drawDarkness() {
@@ -1376,6 +1720,7 @@
     g.fillStyle = '#050304';
     g.fillRect(0, 0, viewW, viewH);
     g.drawImage(bg, -camX, -camY);
+    drawWater();
 
     // Stairs
     if (stairs) {
@@ -1419,6 +1764,9 @@
       if (e.type === 'slime') { shadow(e.x, e.y + 3, 8); drawSpr(fast ? SPR.slimeB : SPR.slimeA, e.x, e.y, false, white); }
       else if (e.type === 'bat') { shadow(e.x, e.y + 6, 6); drawSpr(fast ? SPR.batB : SPR.batA, e.x, e.y - 2, false, white); }
       else if (e.type === 'skel') { shadow(e.x, e.y + 5, 8); drawSpr(SPR.skel, e.x, e.y - 1 - fast, p.x < e.x, white); }
+      else if (e.type === 'sewer') { const k = e.small ? 0.7 : 1; shadow(e.x, e.y + 3 * k, 8 * k); drawSpr(fast ? SPR.sewerB : SPR.sewerA, e.x, e.y, false, white, k); }
+      else if (e.type === 'fireimp') { shadow(e.x, e.y + 6, 6); drawSpr(fast ? SPR.fireB : SPR.fireA, e.x, e.y - 2, false, white); }
+      else if (e.type === 'knight') { shadow(e.x, e.y + 6, 10); drawSpr(SPR.knight, e.x, e.y - 1 - (e.dash > 0 ? 0 : fast), p.x < e.x, white || e.warn > 0); }
       else if (e.type === 'boss') {
         shadow(e.x, e.y + 12, 22);
         drawSpr(fast ? SPR.bossB : SPR.bossA, e.x, e.y, false, white, 2);
@@ -1431,7 +1779,9 @@
     drawParticles(false);
     drawTorchBrackets();
     drawDarkness();
+    drawLavaGlow();
     drawTorchFlames();
+    drawCandles();
     drawWeaponFx();
     drawParticles(true);
     drawAnimeFx();
@@ -1439,10 +1789,9 @@
       const age = 1 - x.life / x.max;
       const base = x.kind === 'crit' ? 2 : 1.3;
       const sc = base * (1 + 0.9 * Math.max(0, 1 - age / 0.14));
-      const col = x.kind === 'crit' ? (Math.floor(age * 20) % 2 ? '#ffcd75' : '#ff8a2a') : x.kind === 'heal' ? '#a7f070' : '#ffffff';
+      const col = x.kind === 'crit' ? '#ffcd75' : x.kind === 'heal' ? '#a7f070' : '#ffffff';
       drawNum(x.val, x.x, x.y, col, sc, Math.min(1, x.life / 0.2));
     }
-    drawImpactFrame();
 
     // Arrow to stairs when they are off screen
     if (stairs && state === 'play') {
@@ -1727,6 +2076,7 @@
     laser: limited('laser', 80, () => { beep(1500, 0.3, 'sawtooth', 0.025, -1200); beep(760, 0.3, 'square', 0.012, -600); }),
     zap: limited('zap', 60, () => { noise(0.12, 0.05, 4000); beep(rand(1400, 2200), 0.08, 'square', 0.02, -1200); }),
     blade: limited('blade', 70, () => beep(1900, 0.05, 'triangle', 0.025, -900)),
+    throw: limited('throw', 80, () => { noise(0.18, 0.03, 1800); beep(520, 0.15, 'triangle', 0.015, 300); }),
     launch: limited('launch', 60, () => { noise(0.25, 0.035, 900); beep(260, 0.22, 'sawtooth', 0.015, 260); }),
     boom: limited('boom', 50, () => { noise(0.5, 0.09, 600); beep(110, 0.4, 'sine', 0.09, -70); }),
     hit: limited('hit', 40, () => beep(240, 0.05, 'square', 0.025, -120)),
@@ -1834,10 +2184,10 @@
   window.pdGame = {
     getBest: () => best,
     setBest: (n) => { best = n; store.set(KEY_BEST, n); $('titleBest').textContent = n; },
-    setWeapon: (id) => { if (WEAPONS[id]) { weaponId = id; store.set(KEY_WEAPON, id); } },
+    setWeapon: (id) => { id = weaponFix(id); if (WEAPONS[id]) { weaponId = id; store.set(KEY_WEAPON, id); } },
   };
 
-  window.__pd = { get state() { return state; }, get floor() { return floor; }, get player() { return p; }, get enemies() { return enemies; }, get stairs() { return stairs; }, get fx() { return { beams: beams.length, zaps: zaps.length, rockets: rockets.length, booms: booms.length, parts: parts.length, hits: hitfx.length, impact: impact.t > 0 }; } };
+  window.__pd = { get state() { return state; }, get floor() { return floor; }, get player() { return p; }, get enemies() { return enemies; }, get stairs() { return stairs; }, get area() { return area.id; }, get room() { return { w: ROOM_W, h: ROOM_H }; }, get fx() { return { beams: beams.length, zaps: zaps.length, rockets: rockets.length, rangs: rangs.length, booms: booms.length, parts: parts.length, hits: hitfx.length }; } };
 
   // ---------- Service worker ----------
   if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
