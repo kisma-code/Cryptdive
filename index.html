@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#14182e">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Pixel Depths">
+  <meta name="description" content="A pixel art action RPG. Go down as deep as you can.">
+  <title>Pixel Depths</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+    <canvas id="game"></canvas>
+
+    <!-- HUD -->
+    <div id="hud" class="hidden">
+      <div class="row">
+        <div class="bar hp"><div id="hpFill" class="fill"></div><span id="hpText">10/10</span></div>
+        <button id="btnMute" class="icon-btn" aria-label="Sound on or off">SND</button>
+        <button id="btnPause" class="icon-btn" aria-label="Pause">II</button>
+      </div>
+      <div class="bar xp"><div id="xpFill" class="fill"></div></div>
+      <div class="row info">
+        <span id="lvText">LV 1</span>
+        <span id="floorText">FLOOR 1</span>
+        <span id="foeText">FOES 0</span>
+      </div>
+    </div>
+
+    <div id="banner"></div>
+
+    <!-- Joystick (middle-bottom) -->
+    <div id="touchZone"></div>
+    <div id="stick" class="hidden"><div id="knob"></div></div>
+
+    <!-- Title screen -->
+    <div id="scrTitle" class="overlay">
+      <canvas id="titleHero" width="10" height="12"></canvas>
+      <h1>PIXEL<br>DEPTHS</h1>
+      <p class="best">BEST FLOOR: <span id="titleBest">0</span></p>
+      <ul class="howto">
+        <li>Move with the stick.</li>
+        <li>Your hero attacks by itself.</li>
+        <li>Kill all monsters on the floor.</li>
+        <li>Walk to the stairs. Go deeper.</li>
+      </ul>
+      <button id="btnStart" class="btn">START</button>
+      <button id="btnInstall" class="btn alt hidden">INSTALL</button>
+    </div>
+
+    <!-- Level up -->
+    <div id="scrLevel" class="overlay hidden">
+      <h2>LEVEL <span id="lvNum">2</span>!</h2>
+      <p>Select one upgrade.</p>
+      <div id="cards"></div>
+    </div>
+
+    <!-- Pause -->
+    <div id="scrPause" class="overlay hidden">
+      <h2>PAUSED</h2>
+      <button id="btnResume" class="btn">RESUME</button>
+      <button id="btnQuit" class="btn alt">QUIT</button>
+    </div>
+
+    <!-- Game over -->
+    <div id="scrOver" class="overlay hidden">
+      <h2>YOU FELL</h2>
+      <p id="newBest" class="newbest hidden">NEW BEST!</p>
+      <div class="stats">
+        <div><span>FLOOR</span><b id="ovFloor">1</b></div>
+        <div><span>BEST</span><b id="ovBest">1</b></div>
+        <div><span>LEVEL</span><b id="ovLevel">1</b></div>
+        <div><span>KILLS</span><b id="ovKills">0</b></div>
+      </div>
+      <button id="btnAgain" class="btn">PLAY AGAIN</button>
+    </div>
+  </div>
+  <script src="game.js"></script>
+</body>
+</html>
