@@ -23,10 +23,10 @@ flickering light; the rest of the dungeon is dark.
 
 | Weapon | What it does | Its upgrades |
 | --- | --- | --- |
-| Laser Beam | A hot beam. It hits all monsters in a line. | Wide Beam, Twin Beam, Overcharge, Rapid Fire |
-| Chain Lightning | Lightning jumps from monster to monster. | More Jumps, Static Field, Thunder, Fork |
-| Orbit Blades | Glowing blades spin around you. | Extra Blade, Wide Orbit, Spin Speed, Sharp Edge |
-| Fire Rockets | Homing rockets. They explode in an area. | Big Boom, Salvo, Napalm, Quick Load |
+| Laser Beam | A hot beam. It hits all monsters in a line. | Wide Beam, Twin Beam, Power, Rapid Fire |
+| Chain Lightning | Lightning jumps from monster to monster. | More Jumps, Static Field, Fork, Power, Rapid Fire |
+| Orbit Blades | Glowing blades spin around you. | Extra Blade, Wide Orbit, Power, Rapid Fire |
+| Fire Rockets | Homing rockets. They explode in an area. | Big Boom, Salvo, Power, Rapid Fire |
 
 ## How to run
 

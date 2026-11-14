@@ -199,10 +199,10 @@
       desc: 'A hot beam. It hits all monsters in a line.',
       base: { dmg: 6, cd: 1.15, width: 3, beams: 1, len: 1.5 },
       ups: [
-        { name: 'Wide Beam', desc: 'Beam is wider. Damage +15%.', ok: (w) => w.width < 9, apply: (w) => { w.width += 1.5; w.dmg *= 1.15; } },
+        { name: 'Wide Beam', desc: 'Beam is wider.', ok: (w) => w.width < 9, apply: (w) => { w.width += 2; } },
         { name: 'Twin Beam', desc: 'Fire 1 more beam.', ok: (w) => w.beams < 3, apply: (w) => { w.beams++; } },
-        { name: 'Overcharge', desc: 'Beam damage +35%.', ok: () => true, apply: (w) => { w.dmg *= 1.35; } },
-        { name: 'Rapid Fire', desc: 'Fire 20% more often.', ok: (w) => w.cd > 0.45, apply: (w) => { w.cd *= 0.8; } },
+        { name: 'Power', desc: 'Damage +30%.', ok: () => true, apply: (w) => { w.dmg *= 1.3; } },
+        { name: 'Rapid Fire', desc: 'Attack 20% faster.', ok: (w) => w.cd > 0.45, apply: (w) => { w.cd *= 0.8; } },
       ],
     },
     lightning: {
@@ -212,8 +212,9 @@
       ups: [
         { name: 'More Jumps', desc: 'Lightning jumps 2 more times.', ok: (w) => w.chains < 11, apply: (w) => { w.chains += 2; } },
         { name: 'Static Field', desc: 'Jump distance +30%.', ok: (w) => w.jump < 100, apply: (w) => { w.jump *= 1.3; } },
-        { name: 'Thunder', desc: 'Lightning damage +30%.', ok: () => true, apply: (w) => { w.dmg *= 1.3; } },
+        { name: 'Power', desc: 'Damage +30%.', ok: () => true, apply: (w) => { w.dmg *= 1.3; } },
         { name: 'Fork', desc: 'Start 1 more lightning chain.', ok: (w) => w.forks < 3, apply: (w) => { w.forks++; } },
+        { name: 'Rapid Fire', desc: 'Attack 20% faster.', ok: (w) => w.cd > 0.35, apply: (w) => { w.cd *= 0.8; } },
       ],
     },
     blades: {
@@ -223,8 +224,8 @@
       ups: [
         { name: 'Extra Blade', desc: 'Add 1 more blade.', ok: (w) => w.count < 6, apply: (w) => { w.count++; } },
         { name: 'Wide Orbit', desc: 'Blades spin farther out.', ok: (w) => w.radius < 38, apply: (w) => { w.radius += 5; } },
-        { name: 'Spin Speed', desc: 'Blades spin 25% faster.', ok: (w) => w.spin < 10, apply: (w) => { w.spin *= 1.25; } },
-        { name: 'Sharp Edge', desc: 'Blade damage +30%.', ok: () => true, apply: (w) => { w.dmg *= 1.3; } },
+        { name: 'Rapid Fire', desc: 'Attack 20% faster.', ok: (w) => w.spin < 10, apply: (w) => { w.spin *= 1.2; w.hitCd *= 0.85; } },
+        { name: 'Power', desc: 'Damage +30%.', ok: () => true, apply: (w) => { w.dmg *= 1.3; } },
       ],
     },
     rockets: {
@@ -234,8 +235,8 @@
       ups: [
         { name: 'Big Boom', desc: 'Explosions are larger.', ok: (w) => w.radius < 46, apply: (w) => { w.radius += 6; } },
         { name: 'Salvo', desc: 'Fire 1 more rocket.', ok: (w) => w.count < 4, apply: (w) => { w.count++; } },
-        { name: 'Napalm', desc: 'Rocket damage +30%.', ok: () => true, apply: (w) => { w.dmg *= 1.3; } },
-        { name: 'Quick Load', desc: 'Fire 20% more often.', ok: (w) => w.cd > 0.5, apply: (w) => { w.cd *= 0.8; } },
+        { name: 'Power', desc: 'Damage +30%.', ok: () => true, apply: (w) => { w.dmg *= 1.3; } },
+        { name: 'Rapid Fire', desc: 'Attack 20% faster.', ok: (w) => w.cd > 0.5, apply: (w) => { w.cd *= 0.8; } },
       ],
     },
   };
@@ -243,13 +244,11 @@
 
   // ---------- Upgrades (for all weapons) ----------
   const UPGRADES = [
-    { name: 'Power', icon: 'P', color: '#ef7d57', desc: 'All damage +25%.', ok: () => true, apply: (p) => { p.dmgMul *= 1.25; } },
-    { name: 'Haste', icon: 'H', color: '#ffcd75', desc: 'Weapon speed +18%.', ok: (p) => p.cdMul > 0.35, apply: (p) => { p.cdMul *= 0.85; } },
     { name: 'Swift Boots', icon: 'S', color: '#73eff7', desc: 'Move speed +12%.', ok: (p) => p.speed < 95, apply: (p) => { p.speed *= 1.12; } },
     { name: 'Vitality', icon: 'V', color: '#ef4b5b', desc: 'Max HP +4. Heal 4 HP.', ok: () => true, apply: (p) => { p.maxHp += 4; p.hp = Math.min(p.maxHp, p.hp + 4); } },
     { name: 'Magnet', icon: 'G', color: '#a7f070', desc: 'Pick up XP from farther.', ok: (p) => p.magnet < 90, apply: (p) => { p.magnet *= 1.5; } },
     { name: 'Regen', icon: 'R', color: '#38b764', desc: 'Heal 0.25 HP each second.', ok: (p) => p.regen < 1.5, apply: (p) => { p.regen += 0.25; } },
-    { name: 'Far Sight', icon: 'F', color: '#a45fb8', desc: 'Weapon range +20%.', ok: (p) => p.range < 170, apply: (p) => { p.range *= 1.2; } },
+    { name: 'Far Sight', icon: 'F', color: '#a45fb8', desc: 'Weapon range +20%.', ok: (p) => p.weapon !== 'blades' && p.range < 170, apply: (p) => { p.range *= 1.2; } },
   ];
 
   // ---------- State ----------
@@ -270,7 +269,7 @@
   function makePlayer() {
     return {
       x: RW / 2, y: RH / 2, vx: 0, vy: 0, r: 4, face: 1, moving: false, anim: 0,
-      hp: 10, maxHp: 10, speed: 52, dmgMul: 1, cdMul: 1, cdT: 0.3,
+      hp: 10, maxHp: 10, speed: 52, cdT: 0.3,
       magnet: 24, regen: 0, range: 100,
       xp: 0, xpNext: 5, level: 1, inv: 0,
       weapon: weaponId, w: Object.assign({}, WEAPONS[weaponId].base), orbA: 0,
@@ -502,7 +501,7 @@
     return bestE;
   }
   const nearestEnemy = (range) => nearestFrom(p.x, p.y, range);
-  const wDmg = () => p.w.dmg * p.dmgMul;
+  const wDmg = () => p.w.dmg;
 
   // Add a glowing spark (drawn with light blending).
   function spark(x, y, color, n, spd = 60, life = 0.35, size = 1.5) {
@@ -524,7 +523,7 @@
     if (p.cdT > 0) return;
     const tg = nearestEnemy(p.range);
     if (!tg) return;
-    p.cdT = p.w.cd * p.cdMul;
+    p.cdT = p.w.cd;
     p.face = tg.x < p.x ? -1 : 1;
     if (p.weapon === 'laser') fireLaser(tg);
     else if (p.weapon === 'lightning') fireLightning(tg);
@@ -616,7 +615,7 @@
   }
   function updateBlades(dt) {
     const w = p.w;
-    p.orbA += (w.spin / p.cdMul) * dt;
+    p.orbA += w.spin * dt;
     for (let i = 0; i < w.count; i++) {
       const b = bladePos(i);
       for (const e of enemies) {
