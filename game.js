@@ -171,7 +171,7 @@
   const DIG = {
     0: '111101101101111', 1: '010110010010111', 2: '111001111100111', 3: '111001111001111',
     4: '101101111001001', 5: '111100111001111', 6: '111100111101111', 7: '111001001001001',
-    8: '111101111101111', 9: '111101111001111',
+    8: '111101111101111', 9: '111101111001111', '!': '010010010000010', '+': '000010111010000',
   };
 
   // ---------- Themes per floor ----------
@@ -192,29 +192,25 @@
   };
 
   // ---------- Weapons ----------
-  // Each weapon has its own base stats and its own level-up upgrades.
+  // Each weapon has its own base stats and 2 unique upgrades.
+  // Damage and Attack Speed are in the general list (one name for all weapons).
   const WEAPONS = {
     laser: {
       name: 'Laser Beam', icon: 'L', color: '#ff3d6e', glow: '#ff9fbf', tags: 'LINE · PIERCE',
       desc: 'A hot beam. It hits all monsters in a line.',
-      base: { dmg: 6, cd: 1.15, width: 3, beams: 1, len: 1.5 },
+      base: { dmg: 6, cd: 1.15, width: 3, beams: 1, len: 1.5 }, minCd: 0.45,
       ups: [
-        { name: 'Wide Beam', desc: 'Beam is wider.', ok: (w) => w.width < 9, apply: (w) => { w.width += 2; } },
-        { name: 'Twin Beam', desc: 'Fire 1 more beam.', ok: (w) => w.beams < 3, apply: (w) => { w.beams++; } },
-        { name: 'Power', desc: 'Damage +30%.', ok: () => true, apply: (w) => { w.dmg *= 1.3; } },
-        { name: 'Rapid Fire', desc: 'Attack 20% faster.', ok: (w) => w.cd > 0.45, apply: (w) => { w.cd *= 0.8; } },
+        { name: 'More Beams', desc: 'Fire 1 more beam.', ok: (w) => w.beams < 3, apply: (w) => { w.beams++; } },
+        { name: 'Wider Beam', desc: 'The beam is wider.', ok: (w) => w.width < 9, apply: (w) => { w.width += 2; } },
       ],
     },
     lightning: {
       name: 'Chain Lightning', icon: 'Z', color: '#6ff6ff', glow: '#b98cff', tags: 'CHAIN · FAST',
       desc: 'Lightning jumps from monster to monster.',
-      base: { dmg: 4, cd: 0.9, chains: 3, jump: 46, forks: 1 },
+      base: { dmg: 4, cd: 0.9, chains: 3, jump: 46, forks: 1 }, minCd: 0.35,
       ups: [
-        { name: 'More Jumps', desc: 'Lightning jumps 2 more times.', ok: (w) => w.chains < 11, apply: (w) => { w.chains += 2; } },
-        { name: 'Static Field', desc: 'Jump distance +30%.', ok: (w) => w.jump < 100, apply: (w) => { w.jump *= 1.3; } },
-        { name: 'Power', desc: 'Damage +30%.', ok: () => true, apply: (w) => { w.dmg *= 1.3; } },
-        { name: 'Fork', desc: 'Start 1 more lightning chain.', ok: (w) => w.forks < 3, apply: (w) => { w.forks++; } },
-        { name: 'Rapid Fire', desc: 'Attack 20% faster.', ok: (w) => w.cd > 0.35, apply: (w) => { w.cd *= 0.8; } },
+        { name: 'More Jumps', desc: 'Lightning jumps 2 more times, farther.', ok: (w) => w.chains < 11, apply: (w) => { w.chains += 2; w.jump = Math.min(90, w.jump * 1.12); } },
+        { name: 'More Chains', desc: 'Start 1 more lightning chain.', ok: (w) => w.forks < 3, apply: (w) => { w.forks++; } },
       ],
     },
     blades: {
@@ -222,21 +218,17 @@
       desc: 'Glowing blades spin around you.',
       base: { dmg: 3, count: 2, radius: 18, spin: 4.2, hitCd: 0.35 },
       ups: [
-        { name: 'Extra Blade', desc: 'Add 1 more blade.', ok: (w) => w.count < 6, apply: (w) => { w.count++; } },
-        { name: 'Wide Orbit', desc: 'Blades spin farther out.', ok: (w) => w.radius < 38, apply: (w) => { w.radius += 5; } },
-        { name: 'Rapid Fire', desc: 'Attack 20% faster.', ok: (w) => w.spin < 10, apply: (w) => { w.spin *= 1.2; w.hitCd *= 0.85; } },
-        { name: 'Power', desc: 'Damage +30%.', ok: () => true, apply: (w) => { w.dmg *= 1.3; } },
+        { name: 'More Blades', desc: 'Add 1 more blade.', ok: (w) => w.count < 6, apply: (w) => { w.count++; } },
+        { name: 'Bigger Orbit', desc: 'Blades spin farther out.', ok: (w) => w.radius < 38, apply: (w) => { w.radius += 5; } },
       ],
     },
     rockets: {
       name: 'Fire Rockets', icon: 'R', color: '#ff8a2a', glow: '#ffd27a', tags: 'AREA · HOMING',
       desc: 'Homing rockets. They explode in an area.',
-      base: { dmg: 8, cd: 1.25, count: 1, radius: 22 },
+      base: { dmg: 8, cd: 1.25, count: 1, radius: 22 }, minCd: 0.5,
       ups: [
-        { name: 'Big Boom', desc: 'Explosions are larger.', ok: (w) => w.radius < 46, apply: (w) => { w.radius += 6; } },
-        { name: 'Salvo', desc: 'Fire 1 more rocket.', ok: (w) => w.count < 4, apply: (w) => { w.count++; } },
-        { name: 'Power', desc: 'Damage +30%.', ok: () => true, apply: (w) => { w.dmg *= 1.3; } },
-        { name: 'Rapid Fire', desc: 'Attack 20% faster.', ok: (w) => w.cd > 0.5, apply: (w) => { w.cd *= 0.8; } },
+        { name: 'More Rockets', desc: 'Fire 1 more rocket.', ok: (w) => w.count < 4, apply: (w) => { w.count++; } },
+        { name: 'Bigger Explosion', desc: 'Explosions are larger.', ok: (w) => w.radius < 46, apply: (w) => { w.radius += 6; } },
       ],
     },
   };
@@ -244,11 +236,17 @@
 
   // ---------- Upgrades (for all weapons) ----------
   const UPGRADES = [
-    { name: 'Swift Boots', icon: 'S', color: '#73eff7', desc: 'Move speed +12%.', ok: (p) => p.speed < 95, apply: (p) => { p.speed *= 1.12; } },
-    { name: 'Vitality', icon: 'V', color: '#ef4b5b', desc: 'Max HP +4. Heal 4 HP.', ok: () => true, apply: (p) => { p.maxHp += 4; p.hp = Math.min(p.maxHp, p.hp + 4); } },
-    { name: 'Magnet', icon: 'G', color: '#a7f070', desc: 'Pick up XP from farther.', ok: (p) => p.magnet < 90, apply: (p) => { p.magnet *= 1.5; } },
-    { name: 'Regen', icon: 'R', color: '#38b764', desc: 'Heal 0.25 HP each second.', ok: (p) => p.regen < 1.5, apply: (p) => { p.regen += 0.25; } },
-    { name: 'Far Sight', icon: 'F', color: '#a45fb8', desc: 'Weapon range +20%.', ok: (p) => p.weapon !== 'blades' && p.range < 170, apply: (p) => { p.range *= 1.2; } },
+    { name: 'Damage', icon: 'D', color: '#ef4b5b', desc: 'Damage +30%.', ok: () => true, apply: (p) => { p.w.dmg *= 1.3; } },
+    {
+      name: 'Attack Speed', icon: 'A', color: '#ffcd75', desc: 'Attack 20% faster.',
+      ok: (p) => (p.weapon === 'blades' ? p.w.spin < 10 : p.w.cd > WEAPONS[p.weapon].minCd),
+      apply: (p) => { if (p.weapon === 'blades') { p.w.spin *= 1.2; p.w.hitCd *= 0.85; } else p.w.cd *= 0.8; },
+    },
+    { name: 'Move Speed', icon: 'S', color: '#73eff7', desc: 'Move 12% faster.', ok: (p) => p.speed < 105, apply: (p) => { p.speed *= 1.12; } },
+    { name: 'Max HP', icon: 'H', color: '#ff7a8a', desc: 'Max HP +4. Heal 4 HP.', ok: () => true, apply: (p) => { p.maxHp += 4; p.hp = Math.min(p.maxHp, p.hp + 4); } },
+    { name: 'Heal Over Time', icon: '+', color: '#38b764', desc: 'Heal 0.25 HP each second.', ok: (p) => p.regen < 1.5, apply: (p) => { p.regen += 0.25; } },
+    { name: 'Pickup Range', icon: 'P', color: '#a7f070', desc: 'Pick up XP from farther.', ok: (p) => p.magnet < 90, apply: (p) => { p.magnet *= 1.5; } },
+    { name: 'Attack Range', icon: 'R', color: '#a45fb8', desc: 'Attack range +20%.', ok: (p) => p.weapon !== 'blades' && p.range < 170, apply: (p) => { p.range *= 1.2; } },
   ];
 
   // ---------- State ----------
@@ -269,13 +267,14 @@
   function makePlayer() {
     return {
       x: RW / 2, y: RH / 2, vx: 0, vy: 0, r: 4, face: 1, moving: false, anim: 0,
-      hp: 10, maxHp: 10, speed: 52, cdT: 0.3,
+      hp: 10, maxHp: 10, speed: 60, cdT: 0.3, charge: 0,
       magnet: 24, regen: 0, range: 100,
       xp: 0, xpNext: 5, level: 1, inv: 0,
       weapon: weaponId, w: Object.assign({}, WEAPONS[weaponId].base), orbA: 0,
     };
   }
   function clearLists() {
+    hitfx = []; rings = []; impact.t = 0;
     enemies = []; pending = []; rockets = []; beams = []; zaps = []; booms = [];
     gems = []; hearts = []; parts = []; texts = [];
   }
@@ -520,11 +519,22 @@
   function updateWeapon(dt) {
     if (p.weapon === 'blades') { updateBlades(dt); return; }
     p.cdT -= dt;
-    if (p.cdT > 0) return;
     const tg = nearestEnemy(p.range);
-    if (!tg) return;
+    const W = WEAPONS[p.weapon];
+    // Charge-up: energy flows into the hero just before the attack.
+    const CH = Math.min(0.32, p.w.cd * 0.6);
+    p.charge = tg && p.cdT < CH ? 1 - Math.max(0, p.cdT) / CH : 0;
+    if (p.charge > 0 && Math.random() < 0.8) {
+      const a = Math.random() * 6.283, r0 = rand(13, 18);
+      parts.push({ x: p.x + Math.cos(a) * r0, y: p.y - 2 + Math.sin(a) * r0, vx: -Math.cos(a) * r0 * 5, vy: -Math.sin(a) * r0 * 5, life: 0.18, max: 0.18, color: W.glow, add: true, size: 1.3 });
+    }
+    if (p.cdT > 0 || !tg) return;
     p.cdT = p.w.cd;
+    p.charge = 0;
     p.face = tg.x < p.x ? -1 : 1;
+    // Energy burst
+    ring(p.x, p.y - 2, 3, 20, W.color, 0.28, 2);
+    spark(p.x, p.y - 2, W.glow, 8, 90, 0.3, 1.6);
     if (p.weapon === 'laser') fireLaser(tg);
     else if (p.weapon === 'lightning') fireLightning(tg);
     else fireRockets(tg);
@@ -644,11 +654,14 @@
   }
   function explode(x, y) {
     const w = p.w, r = w.radius;
+    let nHit = 0;
     for (const e of enemies) {
       if (e.dead) continue;
       const dx = e.x - x, dy = e.y - y, d = Math.hypot(dx, dy);
-      if (d < r + e.r) hurtEnemy(e, wDmg(), dx / (d || 1), dy / (d || 1), 1.3);
+      if (d < r + e.r) { hurtEnemy(e, wDmg(), dx / (d || 1), dy / (d || 1), 1.3); nHit++; }
     }
+    ring(x, y, 4, r * 1.3, '#ffd27a', 0.35, 2.5);
+    if (nHit >= 3) impactFrame(x, y);
     booms.push({ x, y, r, life: 0.45, max: 0.45 });
     spark(x, y, '#ffd27a', 14, 110, 0.45, 2);
     spark(x, y, '#ff6a1a', 10, 70, 0.5, 2);
@@ -708,13 +721,20 @@
 
   function hurtEnemy(e, dmg, dirX, dirY, kbMul = 1) {
     if (e.dead) return;
+    const crit = Math.random() < CRIT_CHANCE;
+    if (crit) dmg *= 2;
     e.hp -= dmg;
-    e.flash = 0.1;
-    const kb = (e.type === 'boss' ? 25 : 90) * kbMul;
+    e.flash = crit ? 0.16 : 0.1;
+    const kb = (e.type === 'boss' ? 25 : 90) * kbMul * (crit ? 1.6 : 1);
     e.kx += dirX * kb; e.ky += dirY * kb;
-    if (texts.length < 40) texts.push({ x: e.x + rand(-2, 2), y: e.y - 8, val: String(Math.max(1, Math.round(dmg))), life: 0.6 });
-    sfx.hit();
-    if (e.hp <= 0) killEnemy(e);
+    const W = WEAPONS[p.weapon];
+    hitSpark(e.x, e.y - 1, dirX, dirY, W.color, crit);
+    addNum(e.x + rand(-2, 2), e.y - 8, String(Math.max(1, Math.round(dmg))) + (crit ? '!' : ''), crit ? 'crit' : 'hit');
+    if (crit) { ring(e.x, e.y, 2, 16, '#ffffff', 0.25, 1.5); shake = Math.max(shake, 1.5); sfx.crit(); } else sfx.hit();
+    if (e.hp <= 0) {
+      killEnemy(e);
+      if (crit || e.type === 'boss') impactFrame(e.x, e.y);
+    }
   }
 
   function killEnemy(e) {
@@ -781,9 +801,9 @@
     const m = Math.hypot(mx, my);
     if (m > 1) { mx /= m; my /= m; }
     // Ease the speed to the joystick value: soft but fast start and stop.
-    const ease = 1 - Math.exp(-34 * dt);
-    p.vx += (mx * p.speed - p.vx) * ease;
-    p.vy += (my * p.speed - p.vy) * ease;
+    // Instant control: the hero moves and stops with the finger.
+    p.vx = mx * p.speed;
+    p.vy = my * p.speed;
     const ox = p.x, oy = p.y;
     p.x += p.vx * dt;
     p.y += p.vy * dt;
@@ -882,7 +902,7 @@
       if (p.hp < p.maxHp && Math.hypot(p.x - h.x, p.y - h.y) < 8) {
         h.dead = true;
         p.hp = Math.min(p.maxHp, p.hp + 3);
-        texts.push({ x: p.x, y: p.y - 10, val: '3', life: 0.8, heal: true });
+        addNum(p.x, p.y - 10, '+3', 'heal');
         sfx.heal();
       }
     }
@@ -904,7 +924,11 @@
       q.vx *= drag; q.vy *= drag; q.life -= dt;
     }
     parts = parts.filter((q) => q.life > 0);
-    for (const x of texts) { x.y -= 18 * dt; x.life -= dt; }
+    for (const x of texts) {
+      x.vy += 170 * dt; x.vx *= Math.exp(-3 * dt);
+      x.x += x.vx * dt; x.y += x.vy * dt; x.life -= dt;
+    }
+    updateAnimeFx(dt);
     texts = texts.filter((x) => x.life > 0);
     if (shake > 0) shake = Math.max(0, shake - dt * 20);
   }
@@ -928,21 +952,28 @@
     g.fillRect(snap(x - camX - w / 2), snap(y - camY), w, 2);
   }
 
-  function drawNum(str, x, y, col) {
-    const w = str.length * 4 - 1;
-    const ox = snap(x - camX - w / 2), oy = snap(y - camY);
+  // Big pixel numbers: they pop in, fly up, then fall.
+  function drawNum(str, x, y, col, sc, alpha) {
+    const w = (str.length * 4 - 1) * sc;
+    const ox = x - camX - w / 2, oy = y - camY;
+    const o = Math.max(0.6, sc * 0.45);
+    g.globalAlpha = alpha;
     for (let pass = 0; pass < 2; pass++) {
       g.fillStyle = pass ? col : PAL.k;
-      const o = pass ? 0 : 1;
       for (let c = 0; c < str.length; c++) {
         const bits = DIG[str[c]];
         if (!bits) continue;
         for (let i = 0; i < 15; i++) {
-          if (bits[i] === '1') g.fillRect(ox + c * 4 + (i % 3) + o, oy + Math.floor(i / 3) + o, 1, 1);
+          if (bits[i] !== '1') continue;
+          const px = ox + (c * 4 + (i % 3)) * sc, py = oy + Math.floor(i / 3) * sc;
+          if (pass) g.fillRect(px, py, sc, sc);
+          else g.fillRect(px - o, py - o, sc + o * 2, sc + o * 2);
         }
       }
     }
+    g.globalAlpha = 1;
   }
+
 
   function updateCamera(dt) {
     let tx = p.x - viewW / 2;
@@ -1134,6 +1165,131 @@
     }
   }
 
+  // ---------- Anime hit effects ----------
+  // Star sparks and slash arcs on hits, energy rings, impact frames with focus lines.
+  let hitfx = [], rings = [];
+  const impact = { t: 0, x: 0, y: 0, cd: 0 };
+  const CRIT_CHANCE = 0.15;
+
+  function addNum(x, y, val, kind) {
+    if (texts.length > 50) texts.shift();
+    const life = kind === 'crit' ? 0.95 : 0.75;
+    texts.push({ x, y, val, kind, vx: rand(-28, 28), vy: kind === 'crit' ? -78 : -58, life, max: life });
+  }
+  function hitSpark(x, y, dx, dy, color, big) {
+    if (hitfx.length > 90) hitfx.splice(0, 10);
+    const sl = big ? 0.22 : 0.16;
+    hitfx.push({ type: 'star', x, y, a: Math.random() * Math.PI, n: big ? 6 : 4, size: big ? 15 : 9, color, life: sl, max: sl });
+    hitfx.push({ type: 'slash', x, y, a: Math.atan2(dy, dx) + rand(-0.6, 0.6), size: big ? 13 : 9, color, life: 0.2, max: 0.2 });
+  }
+  function ring(x, y, r0, r1, color, life = 0.3, width = 2) {
+    rings.push({ x, y, r0, r1, color, width, life, max: life });
+  }
+  function impactFrame(x, y) {
+    if (impact.cd > 0) return;
+    impact.t = 0.09; impact.x = x; impact.y = y; impact.cd = 0.6;
+  }
+  function updateAnimeFx(dt) {
+    for (const f of hitfx) f.life -= dt;
+    hitfx = hitfx.filter((f) => f.life > 0);
+    for (const r of rings) r.life -= dt;
+    rings = rings.filter((r) => r.life > 0);
+    if (impact.t > 0) impact.t -= dt;
+    if (impact.cd > 0) impact.cd -= dt;
+  }
+
+  function drawAnimeFx() {
+    g.save();
+    g.globalCompositeOperation = 'lighter';
+    for (const f of hitfx) {
+      const k = f.life / f.max, e = 1 - k;
+      const sx = f.x - camX, sy = f.y - camY;
+      if (f.type === 'star') {
+        // Sharp spikes: long and short, fast out, then thin.
+        const len = f.size * (0.55 + 0.45 * (1 - Math.pow(1 - e, 3)));
+        for (let pass = 0; pass < 2; pass++) {
+          g.fillStyle = pass ? '#ffffff' : f.color;
+          g.globalAlpha = pass ? k : k * 0.8;
+          const wd = (pass ? 0.9 : 1.8) * (0.3 + k);
+          for (let i = 0; i < f.n * 2; i++) {
+            const a = f.a + (i * Math.PI) / f.n;
+            const l = (i % 2 ? 0.45 : 1) * len * (pass ? 0.85 : 1);
+            const ca = Math.cos(a), sa = Math.sin(a);
+            g.beginPath();
+            g.moveTo(sx + ca * l, sy + sa * l);
+            g.lineTo(sx - sa * wd, sy + ca * wd);
+            g.lineTo(sx + sa * wd, sy - ca * wd);
+            g.closePath();
+            g.fill();
+          }
+        }
+      } else {
+        // Crescent slash through the hit point.
+        const r = f.size * (0.7 + 0.5 * e);
+        const cx = sx - Math.cos(f.a) * r * 0.75, cy = sy - Math.sin(f.a) * r * 0.75;
+        const a1 = f.a - 1.15, a2 = f.a + 1.15;
+        const ox = Math.cos(f.a) * r * 0.22, oy = Math.sin(f.a) * r * 0.22;
+        for (let pass = 0; pass < 2; pass++) {
+          g.globalAlpha = pass ? k : k * 0.7;
+          g.fillStyle = pass ? '#ffffff' : f.color;
+          const rr = pass ? r * 0.96 : r * 1.05;
+          g.beginPath();
+          g.arc(cx, cy, rr, a1, a2);
+          g.arc(cx - ox, cy - oy, rr * 0.92, a2, a1, true);
+          g.closePath();
+          g.fill();
+        }
+      }
+    }
+    for (const r of rings) {
+      const k = r.life / r.max, e = 1 - Math.pow(k, 3);
+      const rad = r.r0 + (r.r1 - r.r0) * e;
+      g.globalAlpha = k;
+      g.strokeStyle = r.color; g.lineWidth = r.width * (0.4 + k) * 1.8;
+      g.beginPath(); g.arc(r.x - camX, r.y - camY, rad, 0, Math.PI * 2); g.stroke();
+      g.strokeStyle = '#ffffff'; g.lineWidth = r.width * (0.3 + k) * 0.7;
+      g.beginPath(); g.arc(r.x - camX, r.y - camY, rad, 0, Math.PI * 2); g.stroke();
+    }
+    g.restore();
+
+    // Charge-up ring around the hero before an attack
+    if (p && p.charge > 0 && state === 'play') {
+      const W = WEAPONS[p.weapon], c = p.charge;
+      glow(p.x, p.y - 2, 6 + 8 * c, W.color, 0.25 + 0.5 * c);
+      g.save();
+      g.globalCompositeOperation = 'lighter';
+      g.globalAlpha = c;
+      g.strokeStyle = W.glow; g.lineWidth = 0.6 + c;
+      g.beginPath(); g.arc(p.x - camX, p.y - 2 - camY, 3 + 11 * (1 - c), 0, Math.PI * 2); g.stroke();
+      g.restore();
+    }
+  }
+
+  // Impact frame: a short bright frame with black focus lines (anime style).
+  function drawImpactFrame() {
+    if (impact.t <= 0) return;
+    const k = impact.t / 0.09;
+    const sx = impact.x - camX, sy = impact.y - camY;
+    g.save();
+    g.globalAlpha = 0.22 * k;
+    g.fillStyle = '#ffffff';
+    g.fillRect(0, 0, viewW, viewH);
+    g.globalAlpha = 0.6 * k;
+    g.fillStyle = '#000000';
+    for (let i = 0; i < 28; i++) {
+      const a = (i / 28) * Math.PI * 2 + rand(-0.08, 0.08);
+      const r0 = rand(22, 40), r1 = 260, w = rand(0.3, 1.4);
+      const ca = Math.cos(a), sa = Math.sin(a);
+      g.beginPath();
+      g.moveTo(sx + ca * r0, sy + sa * r0);
+      g.lineTo(sx + ca * r1 - sa * w * 6, sy + sa * r1 + ca * w * 6);
+      g.lineTo(sx + ca * r1 + sa * w * 6, sy + sa * r1 - ca * w * 6);
+      g.closePath();
+      g.fill();
+    }
+    g.restore();
+  }
+
   // ---------- Torches and light ----------
   // The dungeon is dark. Light shows only around the hero, torches, and weapon effects.
   const lightC = document.createElement('canvas');
@@ -1282,7 +1438,15 @@
     drawTorchFlames();
     drawWeaponFx();
     drawParticles(true);
-    for (const x of texts) drawNum(x.val, x.x, x.y, x.heal ? '#a7f070' : '#ffffff');
+    drawAnimeFx();
+    for (const x of texts) {
+      const age = 1 - x.life / x.max;
+      const base = x.kind === 'crit' ? 2 : 1.3;
+      const sc = base * (1 + 0.9 * Math.max(0, 1 - age / 0.14));
+      const col = x.kind === 'crit' ? (Math.floor(age * 20) % 2 ? '#ffcd75' : '#ff8a2a') : x.kind === 'heal' ? '#a7f070' : '#ffffff';
+      drawNum(x.val, x.x, x.y, col, sc, Math.min(1, x.life / 0.2));
+    }
+    drawImpactFrame();
 
     // Arrow to stairs when they are off screen
     if (stairs && state === 'play') {
@@ -1456,11 +1620,14 @@
   const input = { x: 0, y: 0, id: null };
   const stick = $('stick'), knob = $('knob'), zone = $('touchZone');
 
-  function moveStick(e) {
+  const stickC = { x: 0, y: 0, max: 50 };
+  function readStick() {
     const r = stick.getBoundingClientRect();
-    const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
-    let dx = e.clientX - cx, dy = e.clientY - cy;
-    const max = r.width * 0.4;
+    stickC.x = r.left + r.width / 2; stickC.y = r.top + r.height / 2; stickC.max = r.width * 0.4;
+  }
+  function moveStick(e) {
+    let dx = e.clientX - stickC.x, dy = e.clientY - stickC.y;
+    const max = stickC.max;
     const d = Math.hypot(dx, dy);
     const kd = Math.min(d, max);
     if (d > 0) { knob.style.transform = `translate(calc(-50% + ${(dx / d) * kd}px), calc(-50% + ${(dy / d) * kd}px))`; }
@@ -1480,6 +1647,7 @@
     input.id = e.pointerId;
     try { zone.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
     stick.classList.add('active');
+    readStick();
     moveStick(e);
     unlockAudio();
     e.preventDefault();
@@ -1552,6 +1720,7 @@
     launch: limited('launch', 60, () => { noise(0.25, 0.035, 900); beep(260, 0.22, 'sawtooth', 0.015, 260); }),
     boom: limited('boom', 50, () => { noise(0.5, 0.09, 600); beep(110, 0.4, 'sine', 0.09, -70); }),
     hit: limited('hit', 40, () => beep(240, 0.05, 'square', 0.025, -120)),
+    crit: limited('crit', 60, () => { beep(1200, 0.07, 'square', 0.03, -600); noise(0.08, 0.04, 3000); }),
     kill: limited('kill', 50, () => beep(180, 0.14, 'sawtooth', 0.035, -130)),
     gem: limited('gem', 45, () => beep(1100, 0.06, 'triangle', 0.035, 500)),
     hurt: () => beep(140, 0.25, 'sawtooth', 0.07, -80),
@@ -1650,7 +1819,7 @@
   requestAnimationFrame(frame);
 
   // Test hook (read only use in automatic tests)
-  window.__pd = { get state() { return state; }, get floor() { return floor; }, get player() { return p; }, get enemies() { return enemies; }, get stairs() { return stairs; }, get fx() { return { beams: beams.length, zaps: zaps.length, rockets: rockets.length, booms: booms.length, parts: parts.length }; } };
+  window.__pd = { get state() { return state; }, get floor() { return floor; }, get player() { return p; }, get enemies() { return enemies; }, get stairs() { return stairs; }, get fx() { return { beams: beams.length, zaps: zaps.length, rockets: rockets.length, booms: booms.length, parts: parts.length, hits: hitfx.length, impact: impact.t > 0 }; } };
 
   // ---------- Service worker ----------
   if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {

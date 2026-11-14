@@ -21,12 +21,17 @@ flickering light; the rest of the dungeon is dark.
 
 ## Weapons
 
-| Weapon | What it does | Its upgrades |
+| Weapon | What it does | Its own upgrades |
 | --- | --- | --- |
-| Laser Beam | A hot beam. It hits all monsters in a line. | Wide Beam, Twin Beam, Power, Rapid Fire |
-| Chain Lightning | Lightning jumps from monster to monster. | More Jumps, Static Field, Fork, Power, Rapid Fire |
-| Orbit Blades | Glowing blades spin around you. | Extra Blade, Wide Orbit, Power, Rapid Fire |
-| Fire Rockets | Homing rockets. They explode in an area. | Big Boom, Salvo, Power, Rapid Fire |
+| Laser Beam | A hot beam. It hits all monsters in a line. | More Beams, Wider Beam |
+| Chain Lightning | Lightning jumps from monster to monster. | More Jumps, More Chains |
+| Orbit Blades | Glowing blades spin around you. | More Blades, Bigger Orbit |
+| Fire Rockets | Homing rockets. They explode in an area. | More Rockets, Bigger Explosion |
+
+Upgrades for all weapons: Damage, Attack Speed, Move Speed, Max HP,
+Heal Over Time, Pickup Range, Attack Range (not for Orbit Blades).
+
+Hits have a 15% chance to be critical (double damage, big gold number).
 
 ## How to run
 
