@@ -532,8 +532,7 @@
     p.cdT = p.w.cd;
     p.charge = 0;
     p.face = tg.x < p.x ? -1 : 1;
-    // Energy burst
-    ring(p.x, p.y - 2, 3, 20, W.color, 0.28, 2);
+    // Energy burst (sparks only, no ring)
     spark(p.x, p.y - 2, W.glow, 8, 90, 0.3, 1.6);
     if (p.weapon === 'laser') fireLaser(tg);
     else if (p.weapon === 'lightning') fireLightning(tg);
@@ -1252,16 +1251,10 @@
     }
     g.restore();
 
-    // Charge-up ring around the hero before an attack
+    // Charge-up: a small light on the hero before an attack (no ring).
     if (p && p.charge > 0 && state === 'play') {
       const W = WEAPONS[p.weapon], c = p.charge;
-      glow(p.x, p.y - 2, 6 + 8 * c, W.color, 0.25 + 0.5 * c);
-      g.save();
-      g.globalCompositeOperation = 'lighter';
-      g.globalAlpha = c;
-      g.strokeStyle = W.glow; g.lineWidth = 0.6 + c;
-      g.beginPath(); g.arc(p.x - camX, p.y - 2 - camY, 3 + 11 * (1 - c), 0, Math.PI * 2); g.stroke();
-      g.restore();
+      glow(p.x, p.y - 2, 3 + 4 * c, W.glow, 0.3 + 0.5 * c);
     }
   }
 
