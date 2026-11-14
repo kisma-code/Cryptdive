@@ -4,13 +4,23 @@ A small pixel art action RPG for phones. It is a PWA (you can install it and pla
 
 ## How to play
 
+- Push START, then select a weapon.
 - Move with the joystick at the bottom of the screen.
-- Your hero attacks the nearest monster automatically.
+- Your weapon attacks the monsters automatically.
 - Kill all monsters on the floor. Then stairs show.
 - Walk to the stairs to go down one floor.
-- At each new level, select 1 of 3 upgrades.
+- At each new level, select 1 of 3 upgrades. At least 1 upgrade is for your weapon.
 - Every 5th floor has a boss.
 - Your high score is your deepest floor. The game keeps it on your device.
+
+## Weapons
+
+| Weapon | What it does | Its upgrades |
+| --- | --- | --- |
+| Laser Beam | A hot beam. It hits all monsters in a line. | Wide Beam, Twin Beam, Overcharge, Rapid Fire |
+| Chain Lightning | Lightning jumps from monster to monster. | More Jumps, Static Field, Thunder, Fork |
+| Orbit Blades | Glowing blades spin around you. | Extra Blade, Wide Orbit, Spin Speed, Sharp Edge |
+| Fire Rockets | Homing rockets. They explode in an area. | Big Boom, Salvo, Napalm, Quick Load |
 
 ## How to run
 

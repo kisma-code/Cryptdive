@@ -56,6 +56,13 @@
       <p id="iosHint" class="ios-hint hidden">To install on iPhone: tap <b>Share</b>, then <b>Add to Home Screen</b>.</p>
     </div>
 
+    <!-- Weapon select -->
+    <div id="scrWeapon" class="overlay hidden">
+      <h2>SELECT WEAPON</h2>
+      <div id="weaponCards"></div>
+      <button id="btnWeaponBack" class="btn alt">BACK</button>
+    </div>
+
     <!-- Level up -->
     <div id="scrLevel" class="overlay hidden">
       <h2>LEVEL <span id="lvNum">2</span>!</h2>
@@ -80,6 +87,7 @@
         <div><span>LEVEL</span><b id="ovLevel">1</b></div>
         <div><span>KILLS</span><b id="ovKills">0</b></div>
       </div>
+      <p class="ov-weapon">WEAPON: <span id="ovWeapon">-</span></p>
       <button id="btnAgain" class="btn">PLAY AGAIN</button>
     </div>
   </div>

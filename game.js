@@ -11,9 +11,9 @@
   const TILE = 16;
   const ROOM_W = 15, ROOM_H = 23; // room size in tiles
   const RW = ROOM_W * TILE, RH = ROOM_H * TILE;
-  const BOLT_SPEED = 150;
   const KEY_BEST = 'pixelDepths.bestFloor';
   const KEY_MUTE = 'pixelDepths.mute';
+  const KEY_WEAPON = 'pixelDepths.weapon';
 
   const store = {
     get(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : v; } catch (e) { return d; } },
@@ -174,17 +174,65 @@
     boss: { r: 9, hp: 90, speed: 19, dmg: 3, xp: 15, color: '#ef7d57' },
   };
 
-  // ---------- Upgrades ----------
+  // ---------- Weapons ----------
+  // Each weapon has its own base stats and its own level-up upgrades.
+  const WEAPONS = {
+    laser: {
+      name: 'Laser Beam', icon: 'L', color: '#ff3d6e', glow: '#ff9fbf', tags: 'LINE · PIERCE',
+      desc: 'A hot beam. It hits all monsters in a line.',
+      base: { dmg: 6, cd: 1.15, width: 3, beams: 1, len: 1.5 },
+      ups: [
+        { name: 'Wide Beam', desc: 'Beam is wider. Damage +15%.', ok: (w) => w.width < 9, apply: (w) => { w.width += 1.5; w.dmg *= 1.15; } },
+        { name: 'Twin Beam', desc: 'Fire 1 more beam.', ok: (w) => w.beams < 3, apply: (w) => { w.beams++; } },
+        { name: 'Overcharge', desc: 'Beam damage +35%.', ok: () => true, apply: (w) => { w.dmg *= 1.35; } },
+        { name: 'Rapid Fire', desc: 'Fire 20% more often.', ok: (w) => w.cd > 0.45, apply: (w) => { w.cd *= 0.8; } },
+      ],
+    },
+    lightning: {
+      name: 'Chain Lightning', icon: 'Z', color: '#6ff6ff', glow: '#b98cff', tags: 'CHAIN · FAST',
+      desc: 'Lightning jumps from monster to monster.',
+      base: { dmg: 4, cd: 0.9, chains: 3, jump: 46, forks: 1 },
+      ups: [
+        { name: 'More Jumps', desc: 'Lightning jumps 2 more times.', ok: (w) => w.chains < 11, apply: (w) => { w.chains += 2; } },
+        { name: 'Static Field', desc: 'Jump distance +30%.', ok: (w) => w.jump < 100, apply: (w) => { w.jump *= 1.3; } },
+        { name: 'Thunder', desc: 'Lightning damage +30%.', ok: () => true, apply: (w) => { w.dmg *= 1.3; } },
+        { name: 'Fork', desc: 'Start 1 more lightning chain.', ok: (w) => w.forks < 3, apply: (w) => { w.forks++; } },
+      ],
+    },
+    blades: {
+      name: 'Orbit Blades', icon: 'O', color: '#ffd23f', glow: '#fff4b8', tags: 'CLOSE · ALWAYS ON',
+      desc: 'Glowing blades spin around you.',
+      base: { dmg: 3, count: 2, radius: 18, spin: 4.2, hitCd: 0.35 },
+      ups: [
+        { name: 'Extra Blade', desc: 'Add 1 more blade.', ok: (w) => w.count < 6, apply: (w) => { w.count++; } },
+        { name: 'Wide Orbit', desc: 'Blades spin farther out.', ok: (w) => w.radius < 38, apply: (w) => { w.radius += 5; } },
+        { name: 'Spin Speed', desc: 'Blades spin 25% faster.', ok: (w) => w.spin < 10, apply: (w) => { w.spin *= 1.25; } },
+        { name: 'Sharp Edge', desc: 'Blade damage +30%.', ok: () => true, apply: (w) => { w.dmg *= 1.3; } },
+      ],
+    },
+    rockets: {
+      name: 'Fire Rockets', icon: 'R', color: '#ff8a2a', glow: '#ffd27a', tags: 'AREA · HOMING',
+      desc: 'Homing rockets. They explode in an area.',
+      base: { dmg: 8, cd: 1.25, count: 1, radius: 22 },
+      ups: [
+        { name: 'Big Boom', desc: 'Explosions are larger.', ok: (w) => w.radius < 46, apply: (w) => { w.radius += 6; } },
+        { name: 'Salvo', desc: 'Fire 1 more rocket.', ok: (w) => w.count < 4, apply: (w) => { w.count++; } },
+        { name: 'Napalm', desc: 'Rocket damage +30%.', ok: () => true, apply: (w) => { w.dmg *= 1.3; } },
+        { name: 'Quick Load', desc: 'Fire 20% more often.', ok: (w) => w.cd > 0.5, apply: (w) => { w.cd *= 0.8; } },
+      ],
+    },
+  };
+  const WEAPON_ORDER = ['laser', 'lightning', 'blades', 'rockets'];
+
+  // ---------- Upgrades (for all weapons) ----------
   const UPGRADES = [
-    { name: 'Power', icon: 'P', color: '#ef7d57', desc: 'Damage +25%.', ok: () => true, apply: (p) => { p.dmg *= 1.25; } },
-    { name: 'Haste', icon: 'H', color: '#ffcd75', desc: 'Attack speed +18%.', ok: (p) => p.cd > 0.15, apply: (p) => { p.cd *= 0.85; } },
+    { name: 'Power', icon: 'P', color: '#ef7d57', desc: 'All damage +25%.', ok: () => true, apply: (p) => { p.dmgMul *= 1.25; } },
+    { name: 'Haste', icon: 'H', color: '#ffcd75', desc: 'Weapon speed +18%.', ok: (p) => p.cdMul > 0.35, apply: (p) => { p.cdMul *= 0.85; } },
     { name: 'Swift Boots', icon: 'S', color: '#73eff7', desc: 'Move speed +12%.', ok: (p) => p.speed < 95, apply: (p) => { p.speed *= 1.12; } },
     { name: 'Vitality', icon: 'V', color: '#ef4b5b', desc: 'Max HP +4. Heal 4 HP.', ok: () => true, apply: (p) => { p.maxHp += 4; p.hp = Math.min(p.maxHp, p.hp + 4); } },
-    { name: 'Multishot', icon: 'M', color: '#41a6f6', desc: 'Shoot 1 more bolt.', ok: (p) => p.bolts < 5, apply: (p) => { p.bolts++; } },
-    { name: 'Pierce', icon: 'X', color: '#94b0c2', desc: 'Bolts go through 1 more monster.', ok: (p) => p.pierce < 4, apply: (p) => { p.pierce++; } },
     { name: 'Magnet', icon: 'G', color: '#a7f070', desc: 'Pick up XP from farther.', ok: (p) => p.magnet < 90, apply: (p) => { p.magnet *= 1.5; } },
     { name: 'Regen', icon: 'R', color: '#38b764', desc: 'Heal 0.25 HP each second.', ok: (p) => p.regen < 1.5, apply: (p) => { p.regen += 0.25; } },
-    { name: 'Far Sight', icon: 'F', color: '#a45fb8', desc: 'Attack range +20%.', ok: (p) => p.range < 170, apply: (p) => { p.range *= 1.2; } },
+    { name: 'Far Sight', icon: 'F', color: '#a45fb8', desc: 'Weapon range +20%.', ok: (p) => p.range < 170, apply: (p) => { p.range *= 1.2; } },
   ];
 
   // ---------- State ----------
@@ -193,7 +241,9 @@
   let floor = 1, kills = 0, pendingLevels = 0, dieT = 0;
   let best = parseInt(store.get(KEY_BEST, '0'), 10) || 0;
   let map, bg, theme;
-  let p, enemies, pending, bolts, gems, hearts, parts, texts, stairs, fl;
+  let p, enemies, pending, rockets, beams, zaps, booms, gems, hearts, parts, texts, stairs, fl;
+  let weaponId = store.get(KEY_WEAPON, 'laser');
+  if (!WEAPONS[weaponId]) weaponId = 'laser';
   let camX = 0, camY = 0, camBX = 0, camBY = 0, camSnap = true, shake = 0;
 
   const rand = (a, b) => a + Math.random() * (b - a);
@@ -203,10 +253,15 @@
   function makePlayer() {
     return {
       x: RW / 2, y: RH / 2, vx: 0, vy: 0, r: 4, face: 1, moving: false, anim: 0,
-      hp: 10, maxHp: 10, speed: 52, dmg: 3, cd: 0.7, cdT: 0.3,
-      bolts: 1, pierce: 0, magnet: 24, regen: 0, range: 100,
+      hp: 10, maxHp: 10, speed: 52, dmgMul: 1, cdMul: 1, cdT: 0.3,
+      magnet: 24, regen: 0, range: 100,
       xp: 0, xpNext: 5, level: 1, inv: 0,
+      weapon: weaponId, w: Object.assign({}, WEAPONS[weaponId].base), orbA: 0,
     };
+  }
+  function clearLists() {
+    enemies = []; pending = []; rockets = []; beams = []; zaps = []; booms = [];
+    gems = []; hearts = []; parts = []; texts = [];
   }
 
   // ---------- Room ----------
@@ -368,7 +423,7 @@
     p.x = RW / 2; p.y = RH / 2; p.vx = 0; p.vy = 0;
     camSnap = true;
     p.hp = Math.min(p.maxHp, p.hp + 2);
-    enemies = []; pending = []; bolts = []; gems = []; hearts = []; parts = []; texts = [];
+    clearLists();
     stairs = null;
     genRoom();
     startFloor();
@@ -378,48 +433,234 @@
     floor = 1; kills = 0; pendingLevels = 0;
     p = makePlayer();
     camSnap = true;
-    enemies = []; pending = []; bolts = []; gems = []; hearts = []; parts = []; texts = [];
+    clearLists();
     stairs = null;
     genRoom();
   }
 
   // ---------- Combat ----------
-  function nearestEnemy(range) {
+  function nearestFrom(x, y, range, skip) {
     let bestE = null, bd = range * range;
     for (const e of enemies) {
-      const dx = e.x - p.x, dy = e.y - p.y, d2 = dx * dx + dy * dy;
+      if (e.dead || (skip && skip.has(e))) continue;
+      const dx = e.x - x, dy = e.y - y, d2 = dx * dx + dy * dy;
       if (d2 < bd) { bd = d2; bestE = e; }
     }
     return bestE;
   }
+  const nearestEnemy = (range) => nearestFrom(p.x, p.y, range);
+  const wDmg = () => p.w.dmg * p.dmgMul;
 
-  function fire(tg) {
-    const base = Math.atan2(tg.y - p.y, tg.x - p.x);
-    const n = p.bolts, spread = 0.22;
+  // Add a glowing spark (drawn with light blending).
+  function spark(x, y, color, n, spd = 60, life = 0.35, size = 1.5) {
     for (let i = 0; i < n; i++) {
-      const a = base + (i - (n - 1) / 2) * spread;
-      bolts.push({
-        x: p.x, y: p.y - 2, vx: Math.cos(a) * BOLT_SPEED, vy: Math.sin(a) * BOLT_SPEED,
-        r: 2, life: (p.range / BOLT_SPEED) * 1.4, pierce: p.pierce, hit: [],
-      });
+      const a = Math.random() * 6.283, s = rand(0.3, 1) * spd, l = rand(0.5, 1) * life;
+      parts.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: l, max: l, color, add: true, size });
     }
-    p.face = Math.cos(base) < 0 ? -1 : 1;
-    sfx.shoot();
+  }
+  function smoke(x, y, n = 1, size = 1.5, grow = 5) {
+    for (let i = 0; i < n; i++) {
+      const l = rand(0.4, 0.7);
+      parts.push({ x, y, vx: rand(-8, 8), vy: rand(-12, 2), life: l, max: l, smoke: true, size, grow });
+    }
+  }
+
+  function updateWeapon(dt) {
+    if (p.weapon === 'blades') { updateBlades(dt); return; }
+    p.cdT -= dt;
+    if (p.cdT > 0) return;
+    const tg = nearestEnemy(p.range);
+    if (!tg) return;
+    p.cdT = p.w.cd * p.cdMul;
+    p.face = tg.x < p.x ? -1 : 1;
+    if (p.weapon === 'laser') fireLaser(tg);
+    else if (p.weapon === 'lightning') fireLightning(tg);
+    else fireRockets(tg);
+  }
+
+  // ----- Laser -----
+  function rayLen(x, y, dx, dy, max) {
+    for (let d = 2; d < max; d += 2) {
+      if (solidTile(Math.floor((x + dx * d) / TILE), Math.floor((y + dy * d) / TILE))) return d;
+    }
+    return max;
+  }
+  function fireLaser(tg) {
+    const w = p.w, ox = p.x, oy = p.y - 2;
+    const base = Math.atan2(tg.y - oy, tg.x - ox);
+    for (let i = 0; i < w.beams; i++) {
+      const a = base + (i - (w.beams - 1) / 2) * 0.32;
+      const dx = Math.cos(a), dy = Math.sin(a);
+      const len = rayLen(ox, oy, dx, dy, p.range * w.len);
+      beams.push({ x: ox, y: oy, dx, dy, len, width: w.width, life: 0.4, max: 0.4, ticks: 2, tickT: 0 });
+      spark(ox + dx * len, oy + dy * len, WEAPONS.laser.glow, 6, 50);
+    }
+    shake = Math.max(shake, 1.2);
+    sfx.laser();
+  }
+  function updateBeams(dt) {
+    const col = WEAPONS.laser;
+    for (const b of beams) {
+      b.life -= dt;
+      b.tickT -= dt;
+      // Follow the hero, so the beam stays on the gun.
+      b.x = p.x; b.y = p.y - 2;
+      if (b.ticks > 0 && b.tickT <= 0) {
+        b.ticks--; b.tickT = 0.15;
+        for (const e of enemies) {
+          if (e.dead) continue;
+          const rx = e.x - b.x, ry = e.y - b.y;
+          const along = rx * b.dx + ry * b.dy;
+          if (along < -e.r || along > b.len + e.r) continue;
+          const perp = Math.abs(-rx * b.dy + ry * b.dx);
+          if (perp < b.width / 2 + e.r) {
+            hurtEnemy(e, wDmg() * 0.6, b.dx, b.dy, 0.4);
+            spark(e.x, e.y, col.glow, 5, 70);
+          }
+        }
+      }
+      if (Math.random() < 0.6) spark(b.x + b.dx * b.len, b.y + b.dy * b.len, col.color, 1, 40, 0.25);
+    }
+    beams = beams.filter((b) => b.life > 0);
+  }
+
+  // ----- Chain lightning -----
+  function fireLightning(tg) {
+    const w = p.w, used = new Set();
+    const starts = [tg];
+    for (let i = 1; i < w.forks; i++) {
+      const extra = nearestFrom(p.x, p.y, p.range, new Set(starts));
+      if (extra) starts.push(extra);
+    }
+    for (const st of starts) {
+      const pts = [{ x: p.x, y: p.y - 3 }];
+      let cur = st, n = 0, prev = pts[0];
+      while (cur && n <= w.chains) {
+        used.add(cur);
+        pts.push({ x: cur.x, y: cur.y });
+        const dx = cur.x - prev.x, dy = cur.y - prev.y, d = Math.hypot(dx, dy) || 1;
+        const cx = cur.x, cy = cur.y;
+        hurtEnemy(cur, wDmg() * Math.pow(0.9, n), dx / d, dy / d, 0.3);
+        spark(cx, cy, WEAPONS.lightning.color, 5, 70, 0.3);
+        prev = { x: cx, y: cy };
+        cur = nearestFrom(cx, cy, w.jump, used);
+        n++;
+      }
+      zaps.push({ pts, life: 0.28, max: 0.28 });
+    }
+    shake = Math.max(shake, 1);
+    sfx.zap();
+  }
+  function updateZaps(dt) {
+    for (const z of zaps) z.life -= dt;
+    zaps = zaps.filter((z) => z.life > 0);
+  }
+
+  // ----- Orbit blades -----
+  function bladePos(i) {
+    const w = p.w, a = p.orbA + (i * Math.PI * 2) / w.count;
+    return { a, x: p.x + Math.cos(a) * w.radius, y: p.y - 2 + Math.sin(a) * w.radius };
+  }
+  function updateBlades(dt) {
+    const w = p.w;
+    p.orbA += (w.spin / p.cdMul) * dt;
+    for (let i = 0; i < w.count; i++) {
+      const b = bladePos(i);
+      for (const e of enemies) {
+        if (e.dead || t < (e.bladeT || 0)) continue;
+        const dx = e.x - b.x, dy = e.y - b.y;
+        if (dx * dx + dy * dy < (e.r + 3) * (e.r + 3)) {
+          const ox = e.x - p.x, oy = e.y - p.y, d = Math.hypot(ox, oy) || 1;
+          e.bladeT = t + w.hitCd;
+          hurtEnemy(e, wDmg(), ox / d, oy / d, 0.8);
+          spark(b.x, b.y, WEAPONS.blades.glow, 5, 60, 0.25);
+          sfx.blade();
+        }
+      }
+    }
+  }
+
+  // ----- Fire rockets -----
+  function fireRockets(tg) {
+    const w = p.w;
+    const base = Math.atan2(tg.y - p.y, tg.x - p.x);
+    for (let i = 0; i < w.count; i++) {
+      const a = base + (i - (w.count - 1) / 2) * 0.55 + rand(-0.1, 0.1);
+      rockets.push({ x: p.x, y: p.y - 2, a, sp: 35, tg, life: 2.2, smokeT: 0 });
+    }
+    sfx.launch();
+  }
+  function explode(x, y) {
+    const w = p.w, r = w.radius;
+    for (const e of enemies) {
+      if (e.dead) continue;
+      const dx = e.x - x, dy = e.y - y, d = Math.hypot(dx, dy);
+      if (d < r + e.r) hurtEnemy(e, wDmg(), dx / (d || 1), dy / (d || 1), 1.3);
+    }
+    booms.push({ x, y, r, life: 0.45, max: 0.45 });
+    spark(x, y, '#ffd27a', 14, 110, 0.45, 2);
+    spark(x, y, '#ff6a1a', 10, 70, 0.5, 2);
+    smoke(x, y, 6, 3, 9);
+    shake = Math.max(shake, 2.5);
+    sfx.boom();
+  }
+  function updateRockets(dt) {
+    for (const r of rockets) {
+      if (!r.tg || r.tg.dead) r.tg = nearestFrom(r.x, r.y, 110);
+      if (r.tg) {
+        // Turn softly to the target.
+        const want = Math.atan2(r.tg.y - r.y, r.tg.x - r.x);
+        let da = want - r.a;
+        while (da > Math.PI) da -= Math.PI * 2;
+        while (da < -Math.PI) da += Math.PI * 2;
+        r.a += clamp(da, -5 * dt, 5 * dt);
+      }
+      r.sp = Math.min(175, r.sp + 280 * dt);
+      r.x += Math.cos(r.a) * r.sp * dt;
+      r.y += Math.sin(r.a) * r.sp * dt;
+      r.life -= dt;
+      r.smokeT -= dt;
+      if (r.smokeT <= 0) {
+        r.smokeT = 0.018;
+        smoke(r.x - Math.cos(r.a) * 3, r.y - Math.sin(r.a) * 3, 1, 1.2, 4);
+        spark(r.x - Math.cos(r.a) * 3, r.y - Math.sin(r.a) * 3, '#ff8a2a', 1, 20, 0.15, 1.5);
+      }
+      let hit = r.life <= 0 || solidTile(Math.floor(r.x / TILE), Math.floor(r.y / TILE));
+      if (!hit) {
+        for (const e of enemies) {
+          if (e.dead) continue;
+          const dx = e.x - r.x, dy = e.y - r.y;
+          if (dx * dx + dy * dy < (e.r + 2) * (e.r + 2)) { hit = true; break; }
+        }
+      }
+      if (hit) { r.dead = true; explode(r.x, r.y); }
+    }
+    rockets = rockets.filter((r) => !r.dead);
+    for (const b of booms) b.life -= dt;
+    booms = booms.filter((b) => b.life > 0);
+  }
+
+  function updateWeaponFx(dt) {
+    updateBeams(dt);
+    updateZaps(dt);
+    updateRockets(dt);
   }
 
   function burst(x, y, color, n, spd = 50) {
     for (let i = 0; i < n; i++) {
       const a = Math.random() * 6.283, s = rand(0.3, 1) * spd;
-      parts.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: rand(0.25, 0.55), color });
+      const life = rand(0.25, 0.55);
+      parts.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life, max: life, color });
     }
   }
 
-  function hurtEnemy(e, dmg, dirX, dirY) {
+  function hurtEnemy(e, dmg, dirX, dirY, kbMul = 1) {
+    if (e.dead) return;
     e.hp -= dmg;
     e.flash = 0.1;
-    const kb = e.type === 'boss' ? 25 : 90;
+    const kb = (e.type === 'boss' ? 25 : 90) * kbMul;
     e.kx += dirX * kb; e.ky += dirY * kb;
-    texts.push({ x: e.x, y: e.y - 8, val: String(Math.max(1, Math.round(dmg))), life: 0.6 });
+    if (texts.length < 40) texts.push({ x: e.x + rand(-2, 2), y: e.y - 8, val: String(Math.max(1, Math.round(dmg))), life: 0.6 });
     sfx.hit();
     if (e.hp <= 0) killEnemy(e);
   }
@@ -503,12 +744,8 @@
     if (p.inv > 0) p.inv -= dt;
     if (p.regen) p.hp = Math.min(p.maxHp, p.hp + p.regen * dt);
 
-    // Auto attack
-    p.cdT -= dt;
-    if (p.cdT <= 0) {
-      const tg = nearestEnemy(p.range);
-      if (tg) { fire(tg); p.cdT = p.cd; }
-    }
+    // Weapon (attacks automatically)
+    updateWeapon(dt);
 
     // Spawning
     fl.spawnT -= dt;
@@ -569,25 +806,7 @@
       }
     }
 
-    // Bolts
-    for (const b of bolts) {
-      b.x += b.vx * dt; b.y += b.vy * dt; b.life -= dt;
-      if (b.life <= 0) { b.dead = true; continue; }
-      if (solidTile(Math.floor(b.x / TILE), Math.floor(b.y / TILE))) {
-        b.dead = true; burst(b.x, b.y, PAL.c, 3, 30); continue;
-      }
-      for (const e of enemies) {
-        if (e.dead || b.hit.includes(e)) continue;
-        const dx = e.x - b.x, dy = e.y - b.y, rr = e.r + b.r;
-        if (dx * dx + dy * dy < rr * rr) {
-          b.hit.push(e);
-          const sp = Math.hypot(b.vx, b.vy);
-          hurtEnemy(e, p.dmg, b.vx / sp, b.vy / sp);
-          if (b.pierce-- <= 0) { b.dead = true; break; }
-        }
-      }
-    }
-    bolts = bolts.filter((b) => !b.dead);
+    updateWeaponFx(dt);
     enemies = enemies.filter((e) => !e.dead);
 
     // Gems
@@ -626,9 +845,10 @@
   }
 
   function updateFx(dt) {
+    const drag = Math.exp(-6 * dt);
     for (const q of parts) {
       q.x += q.vx * dt; q.y += q.vy * dt;
-      q.vx *= 0.9; q.vy *= 0.9; q.life -= dt;
+      q.vx *= drag; q.vy *= drag; q.life -= dt;
     }
     parts = parts.filter((q) => q.life > 0);
     for (const x of texts) { x.y -= 18 * dt; x.life -= dt; }
@@ -688,6 +908,181 @@
     camX = snap(camX); camY = snap(camY);
   }
 
+  // ---------- Glow effects ----------
+  // "lighter" blending adds light: overlaps get brighter, like real glow.
+  function glow(x, y, r, color, alpha) {
+    if (r <= 0 || alpha <= 0) return;
+    const sx = x - camX, sy = y - camY;
+    const gr = g.createRadialGradient(sx, sy, 0, sx, sy, r);
+    gr.addColorStop(0, color);
+    gr.addColorStop(1, 'rgba(0,0,0,0)');
+    g.save();
+    g.globalCompositeOperation = 'lighter';
+    g.globalAlpha = Math.min(1, alpha);
+    g.fillStyle = gr;
+    g.fillRect(sx - r, sy - r, r * 2, r * 2);
+    g.restore();
+  }
+
+  // Draw a line in some layers: wide and faint outside, thin and white in the core.
+  function glowLine(pts, width, color, alpha) {
+    const layers = [[3.2, color, 0.14], [1.8, color, 0.35], [1, color, 0.9], [0.35, '#ffffff', 1]];
+    g.save();
+    g.globalCompositeOperation = 'lighter';
+    g.lineCap = 'round';
+    g.lineJoin = 'round';
+    for (const [k, c, a] of layers) {
+      g.globalAlpha = Math.min(1, a * alpha);
+      g.strokeStyle = c;
+      g.lineWidth = Math.max(0.3, width * k);
+      g.beginPath();
+      g.moveTo(pts[0].x - camX, pts[0].y - camY);
+      for (let i = 1; i < pts.length; i++) g.lineTo(pts[i].x - camX, pts[i].y - camY);
+      g.stroke();
+    }
+    g.restore();
+  }
+
+  // A zigzag line between two points (new shape each frame, so it flickers).
+  function jag(x0, y0, x1, y1, amp) {
+    const dx = x1 - x0, dy = y1 - y0, d = Math.hypot(dx, dy) || 1;
+    const nx = -dy / d, ny = dx / d;
+    const n = Math.max(2, Math.round(d / 6));
+    const pts = [{ x: x0, y: y0 }];
+    for (let i = 1; i < n; i++) {
+      const f = i / n, o = rand(-amp, amp);
+      pts.push({ x: x0 + dx * f + nx * o, y: y0 + dy * f + ny * o });
+    }
+    pts.push({ x: x1, y: y1 });
+    return pts;
+  }
+
+  function drawParticles(additive) {
+    if (additive) { g.save(); g.globalCompositeOperation = 'lighter'; }
+    for (const q of parts) {
+      if (!!q.add !== additive) continue;
+      const k = q.max ? q.life / q.max : 1;
+      if (q.smoke) {
+        g.globalAlpha = 0.28 * k;
+        g.fillStyle = '#8a8fa6';
+        const r = q.size + (1 - k) * q.grow;
+        g.beginPath(); g.arc(q.x - camX, q.y - camY, r, 0, Math.PI * 2); g.fill();
+        g.globalAlpha = 1;
+      } else if (q.add) {
+        g.globalAlpha = k;
+        g.fillStyle = q.color;
+        const s = q.size * (0.4 + 0.6 * k);
+        g.fillRect(q.x - camX - s / 2, q.y - camY - s / 2, s, s);
+      } else {
+        g.fillStyle = q.color;
+        const s = q.life > 0.3 ? 2 : 1;
+        g.fillRect(snap(q.x - camX), snap(q.y - camY), s, s);
+      }
+    }
+    g.globalAlpha = 1;
+    if (additive) g.restore();
+  }
+
+  function drawWeaponFx() {
+    // Laser beams
+    const L = WEAPONS.laser;
+    for (const b of beams) {
+      const k = b.life / b.max;
+      const wdt = b.width * (0.35 + 0.65 * k) * rand(0.85, 1.15);
+      const x1 = b.x + b.dx * b.len, y1 = b.y + b.dy * b.len;
+      glowLine([{ x: b.x, y: b.y }, { x: x1, y: y1 }], wdt, L.color, Math.min(1, k * 1.6));
+      glow(b.x, b.y, 6 + wdt * 2, L.glow, k);
+      glow(x1, y1, 5 + wdt * 2, L.color, k);
+    }
+
+    // Lightning
+    const Z = WEAPONS.lightning;
+    for (const z of zaps) {
+      const k = z.life / z.max;
+      for (let i = 0; i < z.pts.length - 1; i++) {
+        const a = z.pts[i], b = z.pts[i + 1];
+        const main = jag(a.x, a.y, b.x, b.y, 3);
+        glowLine(main, 1.6, Z.glow, k * 0.8);
+        glowLine(main, 1.1, Z.color, k);
+        // Small side branch
+        if (Math.random() < 0.5) {
+          const m = main[randi(main.length)];
+          glowLine(jag(m.x, m.y, m.x + rand(-9, 9), m.y + rand(-9, 9), 2), 0.7, Z.color, k * 0.8);
+        }
+        glow(b.x, b.y, 9, Z.color, k * 0.9);
+      }
+      glow(z.pts[0].x, z.pts[0].y, 8, Z.glow, k);
+    }
+
+    // Orbit blades
+    if (p && p.weapon === 'blades' && state !== 'dying' && state !== 'over') {
+      const B = WEAPONS.blades, w = p.w;
+      // faint orbit ring
+      g.save();
+      g.globalCompositeOperation = 'lighter';
+      g.globalAlpha = 0.08;
+      g.strokeStyle = B.color;
+      g.lineWidth = 1;
+      g.beginPath(); g.arc(p.x - camX, p.y - 2 - camY, w.radius, 0, Math.PI * 2); g.stroke();
+      g.restore();
+      const dir = 1;
+      for (let i = 0; i < w.count; i++) {
+        const bp = bladePos(i);
+        // Light trail behind the blade
+        const trail = [];
+        const steps = 10, span = 0.9;
+        for (let j = 0; j <= steps; j++) {
+          const a = bp.a - dir * span * (j / steps);
+          trail.push({ x: p.x + Math.cos(a) * w.radius, y: p.y - 2 + Math.sin(a) * w.radius });
+        }
+        for (let j = 0; j < steps; j++) {
+          const f = 1 - j / steps;
+          glowLine([trail[j], trail[j + 1]], 2.2 * f, B.color, 0.55 * f);
+        }
+        glow(bp.x, bp.y, 8, B.glow, 0.7);
+        // Blade body: a spinning diamond
+        g.save();
+        g.translate(bp.x - camX, bp.y - camY);
+        g.rotate(t * 14 + i);
+        g.fillStyle = B.color;
+        g.beginPath(); g.moveTo(0, -4); g.lineTo(1.6, 0); g.lineTo(0, 4); g.lineTo(-1.6, 0); g.closePath(); g.fill();
+        g.fillStyle = '#ffffff';
+        g.beginPath(); g.moveTo(0, -2.5); g.lineTo(0.7, 0); g.lineTo(0, 2.5); g.lineTo(-0.7, 0); g.closePath(); g.fill();
+        g.restore();
+      }
+    }
+
+    // Rockets
+    for (const r of rockets) {
+      const fl = rand(0.7, 1.2);
+      glow(r.x - Math.cos(r.a) * 3, r.y - Math.sin(r.a) * 3, 7 * fl, '#ff8a2a', 0.9);
+      g.save();
+      g.translate(r.x - camX, r.y - camY);
+      g.rotate(r.a);
+      g.fillStyle = PAL.k; g.fillRect(-3.5, -1.5, 7, 3);
+      g.fillStyle = '#c2c3c7'; g.fillRect(-3, -1, 5, 2);
+      g.fillStyle = '#ef4b5b'; g.fillRect(1.5, -1, 1.5, 2);
+      g.fillStyle = '#ffd27a'; g.fillRect(-4.5 - fl, -0.6, 1.5 + fl, 1.2);
+      g.restore();
+    }
+
+    // Explosions
+    for (const b of booms) {
+      const k = b.life / b.max, e = 1 - k;
+      const ease = 1 - Math.pow(1 - e, 3);
+      if (e < 0.15) glow(b.x, b.y, b.r * 1.4, '#ffffff', 1 - e / 0.15);
+      glow(b.x, b.y, b.r * (0.5 + 0.7 * ease), '#ff8a2a', k * 1.2);
+      glow(b.x, b.y, b.r * (0.3 + 0.4 * ease), '#ffd27a', k);
+      g.save();
+      g.globalCompositeOperation = 'lighter';
+      g.globalAlpha = k;
+      g.strokeStyle = '#ffd27a';
+      g.lineWidth = 2.5 * k + 0.3;
+      g.beginPath(); g.arc(b.x - camX, b.y - camY, b.r * ease, 0, Math.PI * 2); g.stroke();
+      g.restore();
+    }
+  }
+
   function render(dt) {
     updateCamera(dt);
     g.setTransform(R, 0, 0, R, 0, 0);
@@ -717,6 +1112,9 @@
     for (const h of hearts) drawSpr(SPR.heart, h.x, h.y + Math.sin(t * 4), false, false);
     for (const gm of gems) drawSpr(gm.v > 1 ? SPR.gemBig : SPR.gem, gm.x, gm.y, false, false);
 
+    // Soft light of the weapon color under the hero
+    if (state !== 'dying' && state !== 'over') glow(p.x, p.y, 16, WEAPONS[p.weapon].color, 0.16 + 0.04 * Math.sin(t * 5));
+
     // Characters, sorted by y
     const list = enemies.slice();
     if (state !== 'dying' && state !== 'over') list.push(p);
@@ -743,11 +1141,9 @@
       }
     }
 
-    for (const b of bolts) drawSpr(SPR.bolt, b.x, b.y, false, false);
-    for (const q of parts) {
-      g.fillStyle = q.color;
-      g.fillRect(snap(q.x - camX), snap(q.y - camY), q.life > 0.3 ? 2 : 1, q.life > 0.3 ? 2 : 1);
-    }
+    drawParticles(false);
+    drawWeaponFx();
+    drawParticles(true);
     for (const x of texts) drawNum(x.val, x.x, x.y, x.heal ? '#a7f070' : '#ffffff');
 
     // Arrow to stairs when they are off screen
@@ -801,8 +1197,39 @@
     b.classList.add('show');
   }
 
+  function openWeaponSelect() {
+    unlockAudio();
+    state = 'title';
+    hide('scrTitle'); hide('scrOver'); hide('scrPause');
+    const box = $('weaponCards');
+    box.innerHTML = '';
+    for (const id of WEAPON_ORDER) {
+      const W = WEAPONS[id];
+      const btn = document.createElement('button');
+      btn.className = 'card weapon' + (id === weaponId ? ' last' : '');
+      btn.style.setProperty('--wc', W.color);
+      btn.style.setProperty('--wg', W.glow);
+      const ico = document.createElement('span');
+      ico.className = 'ico'; ico.textContent = W.icon;
+      const txt = document.createElement('span');
+      const name = document.createElement('b'); name.textContent = W.name;
+      const desc = document.createElement('small'); desc.textContent = W.desc;
+      const tags = document.createElement('i'); tags.textContent = W.tags;
+      txt.append(name, document.createElement('br'), desc, document.createElement('br'), tags);
+      btn.append(ico, txt);
+      btn.addEventListener('click', () => {
+        weaponId = id;
+        store.set(KEY_WEAPON, id);
+        startGame();
+      });
+      box.appendChild(btn);
+    }
+    show('scrWeapon');
+  }
+
   function startGame() {
     unlockAudio();
+    hide('scrWeapon');
     newGame();
     if (best < 1) { best = 1; store.set(KEY_BEST, best); }
     hide('scrTitle'); hide('scrOver'); hide('scrPause'); hide('scrLevel');
@@ -814,13 +1241,23 @@
   function openLevelUp() {
     state = 'levelup';
     sfx.level();
-    const pool = UPGRADES.filter((u) => u.ok(p));
-    for (let i = pool.length - 1; i > 0; i--) { const j = randi(i + 1); [pool[i], pool[j]] = [pool[j], pool[i]]; }
+    const shuffle = (arr) => { for (let i = arr.length - 1; i > 0; i--) { const j = randi(i + 1); [arr[i], arr[j]] = [arr[j], arr[i]]; } return arr; };
+    const W = WEAPONS[p.weapon];
+    const wPool = shuffle(W.ups.filter((u) => u.ok(p.w)).map((u) => ({
+      name: u.name, desc: u.desc, icon: W.icon, color: W.color, weapon: true, apply: () => u.apply(p.w),
+    })));
+    const gPool = UPGRADES.filter((u) => u.ok(p)).map((u) => ({ ...u, apply: () => u.apply(p) }));
+    // Always give at least 1 weapon upgrade (when one is available).
+    const picks = wPool.slice(0, 1);
+    const rest = shuffle([...wPool.slice(1), ...gPool]);
+    while (picks.length < 3 && rest.length) picks.push(rest.pop());
+    shuffle(picks);
     const cards = $('cards');
     cards.innerHTML = '';
-    for (const u of pool.slice(0, 3)) {
+    for (const u of picks) {
       const btn = document.createElement('button');
-      btn.className = 'card';
+      btn.className = 'card' + (u.weapon ? ' weapon' : '');
+      if (u.weapon) { btn.style.setProperty('--wc', W.color); btn.style.setProperty('--wg', W.glow); }
       btn.disabled = true;
       const ico = document.createElement('span');
       ico.className = 'ico'; ico.style.background = u.color; ico.textContent = u.icon;
@@ -830,7 +1267,7 @@
       txt.append(name, document.createElement('br'), desc);
       btn.append(ico, txt);
       btn.addEventListener('click', () => {
-        u.apply(p);
+        u.apply();
         pendingLevels--;
         hide('scrLevel');
         if (pendingLevels > 0) openLevelUp(); else state = 'play';
@@ -862,6 +1299,7 @@
     $('ovBest').textContent = best;
     $('ovLevel').textContent = p.level;
     $('ovKills').textContent = kills;
+    $('ovWeapon').textContent = WEAPONS[p.weapon].name;
     $('newBest').classList.toggle('hidden', !isNew);
     hide('hud'); hide('stick');
     show('scrOver');
@@ -940,6 +1378,24 @@
     o.connect(gn).connect(actx.destination);
     o.start(t0); o.stop(t0 + dur + 0.02);
   }
+  let noiseBuf = null;
+  function noise(dur, vol, freq, delay = 0) {
+    if (muted || !actx) return;
+    if (!noiseBuf) {
+      noiseBuf = actx.createBuffer(1, Math.floor(actx.sampleRate * 0.6), actx.sampleRate);
+      const d = noiseBuf.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    }
+    const t0 = actx.currentTime + delay;
+    const src = actx.createBufferSource(), f = actx.createBiquadFilter(), gn = actx.createGain();
+    src.buffer = noiseBuf;
+    f.type = 'lowpass';
+    f.frequency.setValueAtTime(freq, t0);
+    gn.gain.setValueAtTime(vol, t0);
+    gn.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    src.connect(f).connect(gn).connect(actx.destination);
+    src.start(t0); src.stop(t0 + dur + 0.02);
+  }
   function limited(name, ms, fn) {
     return () => {
       const now = performance.now();
@@ -948,7 +1404,11 @@
     };
   }
   const sfx = {
-    shoot: limited('shoot', 60, () => beep(900, 0.05, 'square', 0.012, -400)),
+    laser: limited('laser', 80, () => { beep(1500, 0.3, 'sawtooth', 0.025, -1200); beep(760, 0.3, 'square', 0.012, -600); }),
+    zap: limited('zap', 60, () => { noise(0.12, 0.05, 4000); beep(rand(1400, 2200), 0.08, 'square', 0.02, -1200); }),
+    blade: limited('blade', 70, () => beep(1900, 0.05, 'triangle', 0.025, -900)),
+    launch: limited('launch', 60, () => { noise(0.25, 0.035, 900); beep(260, 0.22, 'sawtooth', 0.015, 260); }),
+    boom: limited('boom', 50, () => { noise(0.5, 0.09, 600); beep(110, 0.4, 'sine', 0.09, -70); }),
     hit: limited('hit', 40, () => beep(240, 0.05, 'square', 0.025, -120)),
     kill: limited('kill', 50, () => beep(180, 0.14, 'sawtooth', 0.035, -130)),
     gem: limited('gem', 45, () => beep(1100, 0.06, 'triangle', 0.035, 500)),
@@ -965,8 +1425,9 @@
   syncMute();
 
   // ---------- Buttons ----------
-  $('btnStart').addEventListener('click', startGame);
-  $('btnAgain').addEventListener('click', startGame);
+  $('btnStart').addEventListener('click', openWeaponSelect);
+  $('btnAgain').addEventListener('click', openWeaponSelect);
+  $('btnWeaponBack').addEventListener('click', () => { hide('scrWeapon'); toTitle(); });
   $('btnPause').addEventListener('click', pauseGame);
   $('btnResume').addEventListener('click', resumeGame);
   $('btnQuit').addEventListener('click', () => {
@@ -1047,7 +1508,7 @@
   requestAnimationFrame(frame);
 
   // Test hook (read only use in automatic tests)
-  window.__pd = { get state() { return state; }, get floor() { return floor; }, get player() { return p; }, get enemies() { return enemies; }, get stairs() { return stairs; } };
+  window.__pd = { get state() { return state; }, get floor() { return floor; }, get player() { return p; }, get enemies() { return enemies; }, get stairs() { return stairs; }, get fx() { return { beams: beams.length, zaps: zaps.length, rockets: rockets.length, booms: booms.length, parts: parts.length }; } };
 
   // ---------- Service worker ----------
   if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
