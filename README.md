@@ -19,6 +19,18 @@ Dark gothic dungeon: an armored hero with a hood and red cape, zombies, imps,
 skeleton warriors and a horned demon boss every 5th floor. Torches give
 flickering light; the rest of the dungeon is dark.
 
+The dungeon changes every 5 floors:
+
+| Floors | Area | Floor effect | New monster |
+| --- | --- | --- | --- |
+| 1-5 | The Crypt | coffins and bones | - |
+| 6-10 | Flooded Sewer | water slows you | Sewer Slime (splits in 2) |
+| 11-15 | Lava Caves | lava hurts you | Fire Imp |
+| 16-20 | Bone Cathedral | pillar rows, carpet, candles | Bone Knight (charges) |
+
+After floor 20 the areas repeat. Rooms have different shapes (rectangle,
+cross, L, ring, cave, hall) and sizes (small, medium, large).
+
 ## Weapons
 
 | Weapon | What it does | Its own upgrades |
