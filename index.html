@@ -46,7 +46,7 @@
       <h1>PIXEL<br>DEPTHS</h1>
       <p class="best">BEST FLOOR: <span id="titleBest">0</span></p>
       <ul class="howto">
-        <li>Move with the stick.</li>
+        <li>Touch anywhere and drag to move.</li>
         <li>Your hero attacks by itself.</li>
         <li>Kill all monsters on the floor.</li>
         <li>Walk to the stairs. Go deeper.</li>
@@ -54,6 +54,13 @@
       <button id="btnStart" class="btn">START</button>
       <button id="btnInstall" class="btn alt hidden">INSTALL</button>
       <p id="iosHint" class="ios-hint hidden">To install on iPhone: tap <b>Share</b>, then <b>Add to Home Screen</b>.</p>
+    </div>
+
+    <!-- Weapon select -->
+    <div id="scrWeapon" class="overlay hidden">
+      <h2>SELECT WEAPON</h2>
+      <div id="weaponCards"></div>
+      <button id="btnWeaponBack" class="btn alt">BACK</button>
     </div>
 
     <!-- Level up -->
@@ -80,6 +87,7 @@
         <div><span>LEVEL</span><b id="ovLevel">1</b></div>
         <div><span>KILLS</span><b id="ovKills">0</b></div>
       </div>
+      <p class="ov-weapon">WEAPON: <span id="ovWeapon">-</span></p>
       <button id="btnAgain" class="btn">PLAY AGAIN</button>
     </div>
   </div>

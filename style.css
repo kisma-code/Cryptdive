@@ -131,12 +131,10 @@ html, body {
 }
 
 /* ---------- Joystick ---------- */
+/* Touch anywhere to move. */
 #touchZone {
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 45%;
+  inset: 0;
   z-index: 3;
 }
 #stick {
@@ -152,7 +150,8 @@ html, body {
   z-index: 4;
   pointer-events: none;
 }
-#stick.active { border-color: rgba(255, 255, 255, .4); }
+#stick { opacity: .35; transition: opacity .15s; }
+#stick.active { opacity: 1; border-color: rgba(255, 255, 255, .4); transition: none; }
 #knob {
   position: absolute;
   left: 50%;
@@ -276,3 +275,39 @@ html, body {
 
 .ios-hint { font-size: 12px; line-height: 1.5; max-width: 280px; }
 .ios-hint b { color: var(--ink); }
+
+/* ---------- Weapon cards ---------- */
+#weaponCards { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 360px; }
+.card.weapon {
+  box-shadow: inset 0 0 0 2px var(--wc), 0 0 14px -4px var(--wc);
+}
+.card.weapon .ico {
+  background: var(--wc);
+  box-shadow: inset -3px -3px 0 rgba(0,0,0,.3), 0 0 0 2px var(--dark), 0 0 16px var(--wc);
+  animation: wpulse 1.6s ease-in-out infinite;
+}
+.card.weapon b { color: var(--wg); }
+.card.weapon i {
+  display: inline-block;
+  margin-top: 4px;
+  font-style: normal;
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: var(--wc);
+}
+.card.weapon.last::after {
+  content: "LAST";
+  margin-left: auto;
+  align-self: flex-start;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: var(--dark);
+  background: var(--wc);
+  padding: 2px 4px;
+}
+@keyframes wpulse {
+  50% { box-shadow: inset -3px -3px 0 rgba(0,0,0,.3), 0 0 0 2px var(--dark), 0 0 26px var(--wc); }
+}
+.ov-weapon { font-size: 13px; letter-spacing: 1px; }
+.ov-weapon span { color: var(--ink); }
