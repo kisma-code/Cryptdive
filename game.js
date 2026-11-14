@@ -469,7 +469,10 @@
 
   function nextFloor() {
     floor++;
-    if (floor > best) { best = floor; store.set(KEY_BEST, best); }
+    if (floor > best) {
+      best = floor; store.set(KEY_BEST, best);
+      if (window.PD_CLOUD) window.PD_CLOUD.saveBest(best);
+    }
     sfx.stairs();
     p.x = RW / 2; p.y = RH / 2; p.vx = 0; p.vy = 0;
     camSnap = true;
@@ -1494,6 +1497,8 @@
 
   function openWeaponSelect() {
     unlockAudio();
+    const cloud = window.PD_CLOUD;
+    if (cloud && cloud.required && !cloud.user) { cloud.showLogin(); return; }
     state = 'title';
     hide('scrTitle'); hide('scrOver'); hide('scrPause');
     const box = $('weaponCards');
@@ -1598,6 +1603,18 @@
     $('newBest').classList.toggle('hidden', !isNew);
     hide('hud'); hide('stick');
     show('scrOver');
+    cloudSaveRun($('ovSave'));
+  }
+
+  // Save the run to the player's account (when login is on).
+  function cloudSaveRun(el) {
+    const cloud = window.PD_CLOUD;
+    if (el) el.textContent = '';
+    if (!cloud || !cloud.user) return;
+    if (el) el.textContent = 'SAVING...';
+    cloud.saveRun({ floor, level: p.level, kills, weapon: p.weapon }).then((r) => {
+      if (el) el.textContent = r === 'ok' ? 'SAVED TO YOUR ACCOUNT' : r === 'fail' ? 'SAVE FAILED. CHECK INTERNET.' : '';
+    });
   }
 
   function toTitle() {
@@ -1736,6 +1753,7 @@
   $('btnResume').addEventListener('click', resumeGame);
   $('btnQuit').addEventListener('click', () => {
     if (floor > best) { best = floor; store.set(KEY_BEST, best); }
+    cloudSaveRun(null);
     toTitle();
   });
   document.addEventListener('visibilitychange', () => { if (document.hidden) pauseGame(); });
@@ -1812,6 +1830,13 @@
   requestAnimationFrame(frame);
 
   // Test hook (read only use in automatic tests)
+  // Used by auth.js (cloud save).
+  window.pdGame = {
+    getBest: () => best,
+    setBest: (n) => { best = n; store.set(KEY_BEST, n); $('titleBest').textContent = n; },
+    setWeapon: (id) => { if (WEAPONS[id]) { weaponId = id; store.set(KEY_WEAPON, id); } },
+  };
+
   window.__pd = { get state() { return state; }, get floor() { return floor; }, get player() { return p; }, get enemies() { return enemies; }, get stairs() { return stairs; }, get fx() { return { beams: beams.length, zaps: zaps.length, rockets: rockets.length, booms: booms.length, parts: parts.length, hits: hitfx.length, impact: impact.t > 0 }; } };
 
   // ---------- Service worker ----------
