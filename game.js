@@ -252,13 +252,13 @@
         { name: 'More Chains', desc: 'Start 1 more lightning chain.', ok: (w) => w.forks < 3, apply: (w) => { w.forks++; } },
       ],
     },
-    blades: {
-      name: 'Orbit Blades', icon: 'O', color: '#ffd23f', glow: '#fff4b8', tags: 'CLOSE · ALWAYS ON',
-      desc: 'Glowing blades spin around you.',
-      base: { dmg: 3, count: 2, radius: 18, spin: 4.2, hitCd: 0.35 },
+    boomerang: {
+      name: 'Boomerang', icon: 'B', color: '#ffd23f', glow: '#fff4b8', tags: 'OUT · AND BACK',
+      desc: 'Flies out and comes back. It hits on both ways.',
+      base: { dmg: 5, cd: 1.0, count: 1, size: 5, dist: 1 }, minCd: 0.4,
       ups: [
-        { name: 'More Blades', desc: 'Add 1 more blade.', ok: (w) => w.count < 6, apply: (w) => { w.count++; } },
-        { name: 'Bigger Orbit', desc: 'Blades spin farther out.', ok: (w) => w.radius < 38, apply: (w) => { w.radius += 5; } },
+        { name: 'More Boomerangs', desc: 'Throw 1 more boomerang.', ok: (w) => w.count < 4, apply: (w) => { w.count++; } },
+        { name: 'Bigger Boomerang', desc: 'Bigger, and flies farther.', ok: (w) => w.size < 11, apply: (w) => { w.size += 2; w.dist *= 1.15; } },
       ],
     },
     rockets: {
@@ -271,21 +271,21 @@
       ],
     },
   };
-  const WEAPON_ORDER = ['laser', 'lightning', 'blades', 'rockets'];
+  const WEAPON_ORDER = ['laser', 'lightning', 'boomerang', 'rockets'];
 
   // ---------- Upgrades (for all weapons) ----------
   const UPGRADES = [
     { name: 'Damage', icon: 'D', color: '#ef4b5b', desc: 'Damage +30%.', ok: () => true, apply: (p) => { p.w.dmg *= 1.3; } },
     {
       name: 'Attack Speed', icon: 'A', color: '#ffcd75', desc: 'Attack 20% faster.',
-      ok: (p) => (p.weapon === 'blades' ? p.w.spin < 10 : p.w.cd > WEAPONS[p.weapon].minCd),
-      apply: (p) => { if (p.weapon === 'blades') { p.w.spin *= 1.2; p.w.hitCd *= 0.85; } else p.w.cd *= 0.8; },
+      ok: (p) => p.w.cd > WEAPONS[p.weapon].minCd,
+      apply: (p) => { p.w.cd *= 0.8; },
     },
     { name: 'Move Speed', icon: 'S', color: '#73eff7', desc: 'Move 12% faster.', ok: (p) => p.speed < 105, apply: (p) => { p.speed *= 1.12; } },
     { name: 'Max HP', icon: 'H', color: '#ff7a8a', desc: 'Max HP +4. Heal 4 HP.', ok: () => true, apply: (p) => { p.maxHp += 4; p.hp = Math.min(p.maxHp, p.hp + 4); } },
     { name: 'Heal Over Time', icon: '+', color: '#38b764', desc: 'Heal 0.25 HP each second.', ok: (p) => p.regen < 1.5, apply: (p) => { p.regen += 0.25; } },
     { name: 'Pickup Range', icon: 'P', color: '#a7f070', desc: 'Pick up XP from farther.', ok: (p) => p.magnet < 90, apply: (p) => { p.magnet *= 1.5; } },
-    { name: 'Attack Range', icon: 'R', color: '#a45fb8', desc: 'Attack range +20%.', ok: (p) => p.weapon !== 'blades' && p.range < 170, apply: (p) => { p.range *= 1.2; } },
+    { name: 'Attack Range', icon: 'R', color: '#a45fb8', desc: 'Attack range +20%.', ok: (p) => p.range < 170, apply: (p) => { p.range *= 1.2; } },
   ];
 
   // ---------- State ----------
@@ -294,8 +294,10 @@
   let floor = 1, kills = 0, pendingLevels = 0, dieT = 0;
   let best = parseInt(store.get(KEY_BEST, '0'), 10) || 0;
   let map, bg, bgCtx, theme, torches = [];
-  let p, enemies, pending, rockets, beams, zaps, booms, gems, hearts, parts, texts, stairs, fl;
-  let weaponId = store.get(KEY_WEAPON, 'laser');
+  let p, enemies, pending, rangs = [], rockets, beams, zaps, booms, gems, hearts, parts, texts, stairs, fl;
+  // Orbit Blades was replaced by the Boomerang.
+  const weaponFix = (id) => (id === 'blades' ? 'boomerang' : id);
+  let weaponId = weaponFix(store.get(KEY_WEAPON, 'laser'));
   if (!WEAPONS[weaponId]) weaponId = 'laser';
   let camX = 0, camY = 0, camBX = 0, camBY = 0, camSnap = true, shake = 0;
 
@@ -309,12 +311,12 @@
       hp: 10, maxHp: 10, speed: 60, cdT: 0.3, charge: 0,
       magnet: 24, regen: 0, range: 100,
       xp: 0, xpNext: 5, level: 1, inv: 0,
-      weapon: weaponId, w: Object.assign({}, WEAPONS[weaponId].base), orbA: 0,
+      weapon: weaponId, w: Object.assign({}, WEAPONS[weaponId].base),
     };
   }
   function clearLists() {
     hitfx = []; rings = [];
-    enemies = []; pending = []; rockets = []; beams = []; zaps = []; booms = [];
+    enemies = []; pending = []; rockets = []; beams = []; zaps = []; booms = []; rangs = [];
     gems = []; hearts = []; parts = []; texts = [];
   }
 
@@ -849,7 +851,6 @@
   }
 
   function updateWeapon(dt) {
-    if (p.weapon === 'blades') { updateBlades(dt); return; }
     p.cdT -= dt;
     const tg = nearestEnemy(p.range);
     const W = WEAPONS[p.weapon];
@@ -868,6 +869,7 @@
     spark(p.x, p.y - 2, W.glow, 8, 90, 0.3, 1.6);
     if (p.weapon === 'laser') fireLaser(tg);
     else if (p.weapon === 'lightning') fireLightning(tg);
+    else if (p.weapon === 'boomerang') fireBoomerangs(tg);
     else fireRockets(tg);
   }
 
@@ -957,28 +959,58 @@
     zaps = zaps.filter((z) => z.life > 0);
   }
 
-  // ----- Orbit blades -----
-  function bladePos(i) {
-    const w = p.w, a = p.orbA + (i * Math.PI * 2) / w.count;
-    return { a, x: p.x + Math.cos(a) * w.radius, y: p.y - 2 + Math.sin(a) * w.radius };
-  }
-  function updateBlades(dt) {
-    const w = p.w;
-    p.orbA += w.spin * dt;
+  // ----- Boomerang -----
+  // Thrown toward a monster; a pull back to the hero makes it slow down and return.
+  // Each monster can be hit once on the way out and once on the way back.
+  const RANG_SPEED = 170;
+  function fireBoomerangs(tg) {
+    const w = p.w, base = Math.atan2(tg.y - p.y, tg.x - p.x);
+    const maxD = p.range * 0.85 * w.dist;
     for (let i = 0; i < w.count; i++) {
-      const b = bladePos(i);
+      const a = base + (i - (w.count - 1) / 2) * 0.38;
+      rangs.push({
+        x: p.x, y: p.y - 2, vx: Math.cos(a) * RANG_SPEED, vy: Math.sin(a) * RANG_SPEED,
+        pull: (RANG_SPEED * RANG_SPEED) / (2 * maxD), back: false, life: 4, spin: Math.random() * 6,
+        hitOut: new Set(), hitBack: new Set(), trail: [],
+      });
+    }
+    sfx.throw();
+  }
+  function updateRangs(dt) {
+    const w = p.w, W = WEAPONS.boomerang;
+    for (const r of rangs) {
+      r.life -= dt;
+      r.spin += dt * 22;
+      const hx = p.x - r.x, hy = p.y - 2 - r.y, hd = Math.hypot(hx, hy) || 1;
+      if (!r.back) {
+        r.vx += (hx / hd) * r.pull * dt;
+        r.vy += (hy / hd) * r.pull * dt;
+        if (r.vx * hx + r.vy * hy > 0) r.back = true; // it turned around
+        if (solidTile(Math.floor(r.x / TILE), Math.floor(r.y / TILE))) { r.back = true; spark(r.x, r.y, W.glow, 4, 40, 0.25); }
+      } else {
+        // Fly back to the hero (over walls), a little faster each moment.
+        const sp = Math.min(260, Math.hypot(r.vx, r.vy) + 300 * dt);
+        r.vx = (hx / hd) * sp; r.vy = (hy / hd) * sp;
+        if (hd < 7) { r.dead = true; continue; }
+      }
+      r.x += r.vx * dt; r.y += r.vy * dt;
+      r.trail.unshift({ x: r.x, y: r.y });
+      if (r.trail.length > 9) r.trail.pop();
+      if (r.life <= 0) { r.dead = true; continue; }
+      const set = r.back ? r.hitBack : r.hitOut;
+      const sp = Math.hypot(r.vx, r.vy) || 1;
       for (const e of enemies) {
-        if (e.dead || t < (e.bladeT || 0)) continue;
-        const dx = e.x - b.x, dy = e.y - b.y;
-        if (dx * dx + dy * dy < (e.r + 3) * (e.r + 3)) {
-          const ox = e.x - p.x, oy = e.y - p.y, d = Math.hypot(ox, oy) || 1;
-          e.bladeT = t + w.hitCd;
-          hurtEnemy(e, wDmg(), ox / d, oy / d, 0.8);
-          spark(b.x, b.y, WEAPONS.blades.glow, 5, 60, 0.25);
+        if (e.dead || set.has(e)) continue;
+        const dx = e.x - r.x, dy = e.y - r.y, rr = e.r + w.size * 0.6;
+        if (dx * dx + dy * dy < rr * rr) {
+          set.add(e);
+          hurtEnemy(e, wDmg(), r.vx / sp, r.vy / sp, 0.8);
+          spark(r.x, r.y, W.glow, 5, 60, 0.25);
           sfx.blade();
         }
       }
     }
+    rangs = rangs.filter((r) => !r.dead);
   }
 
   // ----- Fire rockets -----
@@ -1044,6 +1076,7 @@
   }
 
   function updateWeaponFx(dt) {
+    updateRangs(dt);
     updateBeams(dt);
     updateZaps(dt);
     updateRockets(dt);
@@ -1454,42 +1487,27 @@
       glow(z.pts[0].x, z.pts[0].y, 8, Z.glow, k);
     }
 
-    // Orbit blades
-    if (p && p.weapon === 'blades' && state !== 'dying' && state !== 'over') {
-      const B = WEAPONS.blades, w = p.w;
-      // faint orbit ring
-      g.save();
-      g.globalCompositeOperation = 'lighter';
-      g.globalAlpha = 0.08;
-      g.strokeStyle = B.color;
-      g.lineWidth = 1;
-      g.beginPath(); g.arc(p.x - camX, p.y - 2 - camY, w.radius, 0, Math.PI * 2); g.stroke();
-      g.restore();
-      const dir = 1;
-      for (let i = 0; i < w.count; i++) {
-        const bp = bladePos(i);
-        // Light trail behind the blade
-        const trail = [];
-        const steps = 10, span = 0.9;
-        for (let j = 0; j <= steps; j++) {
-          const a = bp.a - dir * span * (j / steps);
-          trail.push({ x: p.x + Math.cos(a) * w.radius, y: p.y - 2 + Math.sin(a) * w.radius });
-        }
-        for (let j = 0; j < steps; j++) {
-          const f = 1 - j / steps;
-          glowLine([trail[j], trail[j + 1]], 2.2 * f, B.color, 0.55 * f);
-        }
-        glow(bp.x, bp.y, 8, B.glow, 0.7);
-        // Blade body: a spinning diamond
-        g.save();
-        g.translate(bp.x - camX, bp.y - camY);
-        g.rotate(t * 14 + i);
-        g.fillStyle = B.color;
-        g.beginPath(); g.moveTo(0, -4); g.lineTo(1.6, 0); g.lineTo(0, 4); g.lineTo(-1.6, 0); g.closePath(); g.fill();
-        g.fillStyle = '#ffffff';
-        g.beginPath(); g.moveTo(0, -2.5); g.lineTo(0.7, 0); g.lineTo(0, 2.5); g.lineTo(-0.7, 0); g.closePath(); g.fill();
-        g.restore();
+    // Boomerangs: light trail and a spinning gold boomerang
+    const BW = WEAPONS.boomerang;
+    for (const r of rangs) {
+      const k = p.w.size / 5;
+      for (let j = 0; j < r.trail.length - 1; j++) {
+        const f = 1 - j / r.trail.length;
+        glowLine([r.trail[j], r.trail[j + 1]], 2.4 * k * f, BW.color, 0.5 * f);
       }
+      glow(r.x, r.y, 7 * k, BW.glow, 0.6);
+      g.save();
+      g.translate(r.x - camX, r.y - camY);
+      g.rotate(r.spin);
+      g.scale(k, k);
+      g.lineCap = 'round'; g.lineJoin = 'round';
+      g.strokeStyle = PAL.k; g.lineWidth = 2.6;
+      g.beginPath(); g.moveTo(-3.5, -3); g.lineTo(0, 0); g.lineTo(-3.5, 3); g.stroke();
+      g.strokeStyle = BW.color; g.lineWidth = 1.6;
+      g.beginPath(); g.moveTo(-3.5, -3); g.lineTo(0, 0); g.lineTo(-3.5, 3); g.stroke();
+      g.strokeStyle = '#ffffff'; g.lineWidth = 0.5;
+      g.beginPath(); g.moveTo(-3, -2.4); g.lineTo(-0.3, 0); g.stroke();
+      g.restore();
     }
 
     // Rockets
@@ -1636,9 +1654,7 @@
     for (const z of zaps) { const k = z.life / z.max; for (const q of z.pts) addLight(q.x, q.y, 28, k); }
     for (const r of rockets) addLight(r.x, r.y, 22, 0.9);
     for (const b of booms) addLight(b.x, b.y, b.r * 2.4, b.life / b.max);
-    if (p && p.weapon === 'blades' && state !== 'dying' && state !== 'over') {
-      for (let i = 0; i < p.w.count; i++) { const bp = bladePos(i); addLight(bp.x, bp.y, 16, 0.7); }
-    }
+    for (const r of rangs) addLight(r.x, r.y, 18, 0.75);
   }
 
   function drawDarkness() {
@@ -2060,6 +2076,7 @@
     laser: limited('laser', 80, () => { beep(1500, 0.3, 'sawtooth', 0.025, -1200); beep(760, 0.3, 'square', 0.012, -600); }),
     zap: limited('zap', 60, () => { noise(0.12, 0.05, 4000); beep(rand(1400, 2200), 0.08, 'square', 0.02, -1200); }),
     blade: limited('blade', 70, () => beep(1900, 0.05, 'triangle', 0.025, -900)),
+    throw: limited('throw', 80, () => { noise(0.18, 0.03, 1800); beep(520, 0.15, 'triangle', 0.015, 300); }),
     launch: limited('launch', 60, () => { noise(0.25, 0.035, 900); beep(260, 0.22, 'sawtooth', 0.015, 260); }),
     boom: limited('boom', 50, () => { noise(0.5, 0.09, 600); beep(110, 0.4, 'sine', 0.09, -70); }),
     hit: limited('hit', 40, () => beep(240, 0.05, 'square', 0.025, -120)),
@@ -2167,10 +2184,10 @@
   window.pdGame = {
     getBest: () => best,
     setBest: (n) => { best = n; store.set(KEY_BEST, n); $('titleBest').textContent = n; },
-    setWeapon: (id) => { if (WEAPONS[id]) { weaponId = id; store.set(KEY_WEAPON, id); } },
+    setWeapon: (id) => { id = weaponFix(id); if (WEAPONS[id]) { weaponId = id; store.set(KEY_WEAPON, id); } },
   };
 
-  window.__pd = { get state() { return state; }, get floor() { return floor; }, get player() { return p; }, get enemies() { return enemies; }, get stairs() { return stairs; }, get area() { return area.id; }, get room() { return { w: ROOM_W, h: ROOM_H }; }, get fx() { return { beams: beams.length, zaps: zaps.length, rockets: rockets.length, booms: booms.length, parts: parts.length, hits: hitfx.length }; } };
+  window.__pd = { get state() { return state; }, get floor() { return floor; }, get player() { return p; }, get enemies() { return enemies; }, get stairs() { return stairs; }, get area() { return area.id; }, get room() { return { w: ROOM_W, h: ROOM_H }; }, get fx() { return { beams: beams.length, zaps: zaps.length, rockets: rockets.length, rangs: rangs.length, booms: booms.length, parts: parts.length, hits: hitfx.length }; } };
 
   // ---------- Service worker ----------
   if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {

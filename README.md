@@ -37,11 +37,11 @@ cross, L, ring, cave, hall) and sizes (small, medium, large).
 | --- | --- | --- |
 | Laser Beam | A hot beam. It hits all monsters in a line. | More Beams, Wider Beam |
 | Chain Lightning | Lightning jumps from monster to monster. | More Jumps, More Chains |
-| Orbit Blades | Glowing blades spin around you. | More Blades, Bigger Orbit |
+| Boomerang | Flies out and comes back. It hits on both ways. | More Boomerangs, Bigger Boomerang |
 | Fire Rockets | Homing rockets. They explode in an area. | More Rockets, Bigger Explosion |
 
 Upgrades for all weapons: Damage, Attack Speed, Move Speed, Max HP,
-Heal Over Time, Pickup Range, Attack Range (not for Orbit Blades).
+Heal Over Time, Pickup Range, Attack Range.
 
 Hits have a 15% chance to be critical (double damage, big gold number).
 
