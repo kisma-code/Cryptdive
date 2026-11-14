@@ -7,7 +7,7 @@
  */
 (() => {
   // ---------- Config ----------
-  const VIEW_W = 160;            // logical screen width in pixels
+  const TARGET_W = 160;          // about this many game pixels across the screen
   const TILE = 16;
   const ROOM_W = 15, ROOM_H = 23; // room size in tiles
   const RW = ROOM_W * TILE, RH = ROOM_H * TILE;
@@ -24,10 +24,13 @@
   const app = $('app');
   const canvas = $('game');
   const ctx = canvas.getContext('2d');
-  const view = document.createElement('canvas');
-  const g = view.getContext('2d');
+  const g = ctx;
 
-  let viewH = 300;
+  // R = screen pixels per game pixel (a whole number, so pixel art stays sharp).
+  // We draw at full screen resolution, so things can move by 1 screen pixel. This makes motion smooth.
+  let R = 1;
+  let viewW = TARGET_W, viewH = 300;
+  const snap = (v) => Math.round(v * R) / R;
   let cssToLogical = 1;
   let topPad = 0, bottomPad = 0;
 
@@ -191,7 +194,7 @@
   let best = parseInt(store.get(KEY_BEST, '0'), 10) || 0;
   let map, bg, theme;
   let p, enemies, pending, bolts, gems, hearts, parts, texts, stairs, fl;
-  let camX = 0, camY = 0, shake = 0;
+  let camX = 0, camY = 0, camBX = 0, camBY = 0, camSnap = true, shake = 0;
 
   const rand = (a, b) => a + Math.random() * (b - a);
   const randi = (n) => Math.floor(Math.random() * n);
@@ -199,7 +202,7 @@
 
   function makePlayer() {
     return {
-      x: RW / 2, y: RH / 2, r: 4, face: 1, moving: false, anim: 0,
+      x: RW / 2, y: RH / 2, vx: 0, vy: 0, r: 4, face: 1, moving: false, anim: 0,
       hp: 10, maxHp: 10, speed: 52, dmg: 3, cd: 0.7, cdT: 0.3,
       bolts: 1, pierce: 0, magnet: 24, regen: 0, range: 100,
       xp: 0, xpNext: 5, level: 1, inv: 0,
@@ -362,7 +365,8 @@
     floor++;
     if (floor > best) { best = floor; store.set(KEY_BEST, best); }
     sfx.stairs();
-    p.x = RW / 2; p.y = RH / 2;
+    p.x = RW / 2; p.y = RH / 2; p.vx = 0; p.vy = 0;
+    camSnap = true;
     p.hp = Math.min(p.maxHp, p.hp + 2);
     enemies = []; pending = []; bolts = []; gems = []; hearts = []; parts = []; texts = [];
     stairs = null;
@@ -373,6 +377,7 @@
   function newGame() {
     floor = 1; kills = 0; pendingLevels = 0;
     p = makePlayer();
+    camSnap = true;
     enemies = []; pending = []; bolts = []; gems = []; hearts = []; parts = []; texts = [];
     stairs = null;
     genRoom();
@@ -481,11 +486,19 @@
     let mx = input.x + key.x, my = input.y + key.y;
     const m = Math.hypot(mx, my);
     if (m > 1) { mx /= m; my /= m; }
-    p.x += mx * p.speed * dt;
-    p.y += my * p.speed * dt;
+    // Ease the speed to the joystick value: soft but fast start and stop.
+    const ease = 1 - Math.exp(-22 * dt);
+    p.vx += (mx * p.speed - p.vx) * ease;
+    p.vy += (my * p.speed - p.vy) * ease;
+    const ox = p.x, oy = p.y;
+    p.x += p.vx * dt;
+    p.y += p.vy * dt;
     collide(p);
-    p.moving = m > 0.05;
-    if (p.moving) p.anim += dt * Math.min(1, m);
+    // Do not keep speed into a wall.
+    if (dt > 0) { p.vx = (p.x - ox) / dt; p.vy = (p.y - oy) / dt; }
+    const sp = Math.hypot(p.vx, p.vy);
+    p.moving = sp > 4;
+    if (p.moving) p.anim += dt * Math.min(1, sp / p.speed);
     if (mx < -0.1) p.face = -1; else if (mx > 0.1) p.face = 1;
     if (p.inv > 0) p.inv -= dt;
     if (p.regen) p.hp = Math.min(p.maxHp, p.hp + p.regen * dt);
@@ -626,7 +639,7 @@
   // ---------- Render ----------
   function drawSpr(s, x, y, flip, white, k = 1) {
     const w = s.w * k, h = s.h * k;
-    const dx = Math.round(x - camX - w / 2), dy = Math.round(y - camY - h / 2);
+    const dx = snap(x - camX - w / 2), dy = snap(y - camY - h / 2);
     const img = white ? s.white : s.img;
     if (flip) {
       g.save(); g.translate(dx + w, dy); g.scale(-1, 1);
@@ -639,12 +652,12 @@
 
   function shadow(x, y, w) {
     g.fillStyle = 'rgba(0,0,0,.35)';
-    g.fillRect(Math.round(x - camX - w / 2), Math.round(y - camY), w, 2);
+    g.fillRect(snap(x - camX - w / 2), snap(y - camY), w, 2);
   }
 
   function drawNum(str, x, y, col) {
     const w = str.length * 4 - 1;
-    const ox = Math.round(x - camX - w / 2), oy = Math.round(y - camY);
+    const ox = snap(x - camX - w / 2), oy = snap(y - camY);
     for (let pass = 0; pass < 2; pass++) {
       g.fillStyle = pass ? col : PAL.k;
       const o = pass ? 0 : 1;
@@ -658,26 +671,33 @@
     }
   }
 
-  function updateCamera() {
-    let tx = p.x - VIEW_W / 2;
+  function updateCamera(dt) {
+    let tx = p.x - viewW / 2;
     let ty = p.y - (viewH - bottomPad + topPad) / 2;
-    tx = clamp(tx, 0, Math.max(0, RW - VIEW_W));
+    const minX = 0, maxX = RW - viewW;
+    tx = minX > maxX ? (minX + maxX) / 2 : clamp(tx, minX, maxX);
     const minY = -topPad, maxY = RH - viewH + bottomPad;
     ty = minY > maxY ? (minY + maxY) / 2 : clamp(ty, minY, maxY);
-    camX = tx; camY = ty;
+    // The camera follows the hero softly.
+    if (camSnap) { camBX = tx; camBY = ty; camSnap = false; }
+    const k = 1 - Math.exp(-10 * dt);
+    camBX += (tx - camBX) * k;
+    camBY += (ty - camBY) * k;
+    camX = camBX; camY = camBY;
     if (shake > 0) { camX += rand(-shake, shake); camY += rand(-shake, shake); }
-    camX = Math.round(camX); camY = Math.round(camY);
+    camX = snap(camX); camY = snap(camY);
   }
 
-  function render() {
-    updateCamera();
+  function render(dt) {
+    updateCamera(dt);
+    g.setTransform(R, 0, 0, R, 0, 0);
     g.fillStyle = '#0e1122';
-    g.fillRect(0, 0, VIEW_W, viewH);
+    g.fillRect(0, 0, viewW, viewH);
     g.drawImage(bg, -camX, -camY);
 
     // Stairs
     if (stairs) {
-      const x = Math.round(stairs.x - 8 - camX), y = Math.round(stairs.y - 8 - camY);
+      const x = snap(stairs.x - 8 - camX), y = snap(stairs.y - 8 - camY);
       g.fillStyle = PAL.k; g.fillRect(x, y, 16, 16);
       const cols = ['#ffcd75', '#c99a52', '#8a6a3a', '#5a4428'];
       for (let i = 0; i < 4; i++) { g.fillStyle = cols[i]; g.fillRect(x + 1 + i, y + 2 + i * 3, 14 - i * 2, 2); }
@@ -694,7 +714,7 @@
     }
 
     // Pickups
-    for (const h of hearts) drawSpr(SPR.heart, h.x, h.y + Math.round(Math.sin(t * 4)), false, false);
+    for (const h of hearts) drawSpr(SPR.heart, h.x, h.y + Math.sin(t * 4), false, false);
     for (const gm of gems) drawSpr(gm.v > 1 ? SPR.gemBig : SPR.gem, gm.x, gm.y, false, false);
 
     // Characters, sorted by y
@@ -717,7 +737,7 @@
       else if (e.type === 'boss') {
         shadow(e.x, e.y + 7, 18);
         drawSpr(fast ? SPR.bossB : SPR.bossA, e.x, e.y, false, white, 2);
-        const bw = 22, bx = Math.round(e.x - camX - bw / 2), by = Math.round(e.y - camY - 14);
+        const bw = 22, bx = snap(e.x - camX - bw / 2), by = snap(e.y - camY - 14);
         g.fillStyle = PAL.k; g.fillRect(bx - 1, by - 1, bw + 2, 4);
         g.fillStyle = '#ef4b5b'; g.fillRect(bx, by, Math.max(0, Math.round(bw * e.hp / e.maxHp)), 2);
       }
@@ -726,7 +746,7 @@
     for (const b of bolts) drawSpr(SPR.bolt, b.x, b.y, false, false);
     for (const q of parts) {
       g.fillStyle = q.color;
-      g.fillRect(Math.round(q.x - camX), Math.round(q.y - camY), q.life > 0.3 ? 2 : 1, q.life > 0.3 ? 2 : 1);
+      g.fillRect(snap(q.x - camX), snap(q.y - camY), q.life > 0.3 ? 2 : 1, q.life > 0.3 ? 2 : 1);
     }
     for (const x of texts) drawNum(x.val, x.x, x.y, x.heal ? '#a7f070' : '#ffffff');
 
@@ -734,13 +754,13 @@
     if (stairs && state === 'play') {
       const sx = stairs.x - camX, sy = stairs.y - camY;
       const top = topPad + 4, bottom = viewH - bottomPad - 4;
-      if (sx < 0 || sx > VIEW_W || sy < top || sy > bottom) {
-        const cx = VIEW_W / 2, cy = (top + bottom) / 2;
+      if (sx < 0 || sx > viewW || sy < top || sy > bottom) {
+        const cx = viewW / 2, cy = (top + bottom) / 2;
         const a = Math.atan2(sy - cy, sx - cx);
-        const ax = clamp(cx + Math.cos(a) * 200, 8, VIEW_W - 8);
+        const ax = clamp(cx + Math.cos(a) * 200, 8, viewW - 8);
         const ay = clamp(cy + Math.sin(a) * 200, top + 4, bottom - 4);
         g.save();
-        g.translate(Math.round(ax), Math.round(ay));
+        g.translate(snap(ax), snap(ay));
         g.rotate(a);
         g.fillStyle = Math.floor(t * 4) % 2 ? PAL.y : PAL.R;
         g.beginPath(); g.moveTo(5, 0); g.lineTo(-4, -4); g.lineTo(-4, 4); g.closePath(); g.fill();
@@ -748,7 +768,6 @@
       }
     }
 
-    ctx.drawImage(view, 0, 0, canvas.width, canvas.height);
   }
 
   // ---------- HUD ----------
@@ -982,13 +1001,13 @@
     const r = app.getBoundingClientRect();
     const w = Math.max(1, r.width), h = Math.max(1, r.height);
     const dpr = Math.min(window.devicePixelRatio || 1, 3);
-    viewH = Math.max(180, Math.round((VIEW_W * h) / w));
-    view.width = VIEW_W; view.height = viewH;
     canvas.width = Math.round(w * dpr);
     canvas.height = Math.round(h * dpr);
-    cssToLogical = VIEW_W / w;
+    R = Math.max(1, Math.round(canvas.width / TARGET_W));
+    viewW = canvas.width / R;
+    viewH = canvas.height / R;
+    cssToLogical = viewW / w;
     ctx.imageSmoothingEnabled = false;
-    g.imageSmoothingEnabled = false;
     // Space under the HUD and over the joystick, so the room edges stay visible.
     const hudEl = $('hud');
     const wasHidden = hudEl.classList.contains('hidden');
@@ -1017,7 +1036,7 @@
     if (dt > 0.05) dt = 0.05;
     if (dt < 0) dt = 0;
     update(dt);
-    render();
+    render(dt);
     updateHud();
     requestAnimationFrame(frame);
   }
