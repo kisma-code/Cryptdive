@@ -9,8 +9,8 @@
 //
 // While apiKey starts with "PASTE", login is off and the game runs in guest mode.
 export const FIREBASE_CONFIG = {
-  apiKey: 'PASTE_API_KEY_HERE',
-  authDomain: 'PASTE_PROJECT_ID.firebaseapp.com',
-  projectId: 'PASTE_PROJECT_ID',
-  appId: 'PASTE_APP_ID',
+  apiKey: 'AIzaSyB_kgAM0nMb0-asfymEwXdUM0OYvOAK2NQ',
+  authDomain: 'pixel-roguelike-web-game.firebaseapp.com',
+  projectId: 'pixel-roguelike-web-game',
+  appId: '1:1083071314615:web:10604609bf502fde646b32',
 };
