@@ -33,6 +33,32 @@ Heal Over Time, Pickup Range, Attack Range (not for Orbit Blades).
 
 Hits have a 15% chance to be critical (double damage, big gold number).
 
+## Google login setup (Firebase)
+
+Players must sign in with Google to play. Their best scores save to their
+account (cloud save) and show on the leaderboard (first name + deepest floor;
+no email). Until you finish these steps, the game runs in guest mode.
+
+1. Go to https://console.firebase.google.com and push **Create a project**.
+   Give it a name (for example `pixel-depths`). You can turn off Google Analytics.
+2. **Build > Authentication > Get started > Sign-in method > Google**:
+   turn on **Enable**, select a support email, push **Save**.
+3. **Authentication > Settings > Authorized domains > Add domain**:
+   add `kisma-code.github.io`.
+4. **Build > Firestore Database > Create database**: select a location,
+   start in **production mode**.
+5. **Firestore Database > Rules**: replace the text with the contents of
+   `firestore.rules` from this repository, then push **Publish**.
+6. **Project settings** (gear icon) **> Your apps > Web (`</>`)**: register an
+   app (for example `Pixel Depths`). Copy `apiKey`, `authDomain`, `projectId`
+   and `appId` from the config into `firebase-config.js`.
+7. In `sw.js`, change `VERSION` (for example `v13` to `v14`), so phones get the
+   new config. Push the change.
+
+The values in `firebase-config.js` are not secret. The rules in
+`firestore.rules` protect the data: each player can change only their own
+record, and the best floor can only go up.
+
 ## How to run
 
 The game uses plain HTML, CSS and JavaScript. No build step.
@@ -54,4 +80,7 @@ The install and offline parts need HTTPS (or `localhost`). GitHub Pages gives HT
 | `game.js` | All game code |
 | `manifest.webmanifest` | PWA data (name, icons, portrait mode) |
 | `sw.js` | Service worker (offline cache). Change `VERSION` when you change a file. |
+| `auth.js` | Google login, cloud save and leaderboard (Firebase) |
+| `firebase-config.js` | Your Firebase project values (see setup above) |
+| `firestore.rules` | Database safety rules to paste in the Firebase console |
 | `icons/` | App icons |
