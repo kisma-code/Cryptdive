@@ -39,6 +39,9 @@
     k: '#1a1c2c', w: '#f4f4f4', s: '#f4b48c', b: '#3b5dc9', B: '#41a6f6', c: '#73eff7',
     g: '#38b764', G: '#a7f070', r: '#b13e53', R: '#ef7d57', y: '#ffcd75', p: '#5d275d',
     P: '#a45fb8', e: '#566c86', E: '#94b0c2', o: '#73464b', d: '#333c57',
+    // gothic colors
+    h: '#4d3a55', D: '#7a1c2c', m: '#a7adbd', n: '#596079',
+    z: '#8a9a6b', Z: '#56663f', q: '#5a4636', Q: '#3a2c24', W: '#d8cfb4',
   };
 
   function sprite(rows, swap) {
@@ -66,75 +69,88 @@
     return { img: c, white: wc, w, h };
   }
 
+  // Dark gothic pixel art (original designs).
   const HERO_TOP = [
     '...kkkk...',
-    '..kbbbbk..',
-    '.kbBBBBbk.',
-    '.kbkkkkbk.',
-    '.kssssssk.',
-    '.kskssksk.',
-    '..kssssk..',
-    '.kbbyybbk.',
-    'kskbbbbksk',
-    '.kkbbbbkk.',
+    '..khhhhk..',
+    '.khhhhhhk.',
+    '.khkkkkhk.',
+    '.khykkyhk.',
+    '.kDhkkhDk.',
+    'kDmmnnmmDk',
+    'kDmnmmnmDk',
+    'kDkmyymkDk',
+    'kDkmnnmkDk',
   ];
-  const SLIME_A = [
-    '..........',
+  const ZOMBIE_TOP = [
     '...kkkk...',
-    '..kGGGGk..',
-    '.kGggggGk.',
-    'kgwkggwkgk',
-    'kggggggggk',
-    'kggggggggk',
-    '.kkkkkkkk.',
+    '..kzzzzk..',
+    '.kzRzzRzk.',
+    '.kzzZZzzk.',
+    '..kzzzzk..',
+    'kzkqqqqkzk',
+    'kzkqQqqkzk',
+    '.kkqqQqkk.',
+    '..kqqqqk..',
+    '..kQkkQk..',
   ];
-  const SLIME_B = [
-    '..........',
-    '..........',
-    '...kkkk...',
-    '.kkGGGGkk.',
-    'kGgwkgwkGk',
-    'kggggggggk',
-    'kggggggggk',
-    'kkkkkkkkkk',
+  const DEMON_TOP = [
+    '.k..........k.',
+    '.kk........kk.',
+    '..kRk.kk.kRk..',
+    '...kRkrrkRk...',
+    '...krrrrrrk...',
+    '..krryrryrrk..',
+    '..krrrrrrrrk..',
+    '.kkrrkwwkrrkk.',
+    'krrkrrrrrrkrrk',
+    'krrkrDDDDrkrrk',
   ];
 
   const SPR = {
-    heroA: sprite([...HERO_TOP, '..kok.kok.', '..kk..kk..']),
-    heroB: sprite([...HERO_TOP, '.kok...kok', '.kk.....kk']),
-    slimeA: sprite(SLIME_A),
-    slimeB: sprite(SLIME_B),
-    bossA: sprite(SLIME_A, { g: 'r', G: 'R', w: 'y' }),
-    bossB: sprite(SLIME_B, { g: 'r', G: 'R', w: 'y' }),
+    heroA: sprite([...HERO_TOP, '..knk.knk.', '..kk...kk.']),
+    heroB: sprite([...HERO_TOP, '.knk...knk', '.kk.....kk']),
+    // "slime" type = Zombie (slow)
+    slimeA: sprite([...ZOMBIE_TOP, '..kZk.kZk.', '..kk...kk.']),
+    slimeB: sprite([...ZOMBIE_TOP, '.kZk..kZk.', '.kk....kk.']),
+    // "boss" type = Horned Demon
+    bossA: sprite([...DEMON_TOP, 'kRkkrrDDrrkkRk', '.k.krrrrrrk.k.', '...krrkkrrk...', '...kkk..kkk...']),
+    bossB: sprite([...DEMON_TOP, '.kRkrrDDrrkRk.', '..kkrrrrrrkk..', '...krrkkrrk...', '..kkk....kkk..']),
+    // "bat" type = Imp (fast, flying)
     batA: sprite([
-      'kk..k..k..kk',
-      'kpkkpkkpkkpk',
-      'kpppprrppppk',
-      '.kppwppwppk.',
-      '..kpppppppk.',
-      '...kkkkkkk..',
-    ], { p: 'P' }),
+      '....k..k....',
+      'k..krkkrk..k',
+      'kk.krrrrk.kk',
+      'krkryrryrkrk',
+      'krrrrrrrrrrk',
+      '.kkrrRRrrkk.',
+      '...krrrrk...',
+      '....k..k....',
+    ]),
     batB: sprite([
       '....k..k....',
-      '...kpkkpk...',
-      '.kkpprrppkk.',
-      'kpppwppwpppk',
-      'kpkkpppkkpk.',
-      'k...kkkk...k',
-    ], { p: 'P' }),
+      '...krkkrk...',
+      '...krrrrk...',
+      '.kkryrryrkk.',
+      'krrrrrrrrrrk',
+      'krkrrRRrrkrk',
+      'kk.krrrrk.kk',
+      '....k..k....',
+    ]),
+    // "skel" type = Skeleton Warrior (old bone, red eyes, rusty blade)
     skel: sprite([
-      '..kkkkkk..',
-      '.kwwwwwwk.',
-      '.kwrwwrwk.',
-      '.kwwwwwwk.',
-      '..kwkkwk..',
-      '...kwwk...',
-      '.kkEwwEkk.',
-      'kwkwkkwkwk',
-      'k.kEwwEk.k',
-      '..kwkkwk..',
-      '..kwk.kwk.',
-      '..kk...kk.',
+      '..kkkkkk....',
+      '.kWWWWWWk...',
+      '.kWrWWrWk...',
+      '.kWWWWWWk.k.',
+      '..kWkkWk.knk',
+      '...kWWk..knk',
+      '.kkEWWEkkknk',
+      'kWkWkkWkWknk',
+      'k.kEWWEk.kok',
+      '..kWkkWk..k.',
+      '..kWk.kWk...',
+      '..kk...kk...',
     ]),
     gem: sprite(['..k..', '.kck.', 'kcwck', '.kck.', '..k..']),
     gemBig: sprite(['..k..', '.kGk.', 'kGwGk', '.kGk.', '..k..']),
@@ -160,18 +176,19 @@
 
   // ---------- Themes per floor ----------
   const THEMES = [
-    { f1: '#3a4466', f2: '#343d5c', sp: '#4b5680', wall: '#262b44', top: '#5a6988' },
-    { f1: '#2f4a3a', f2: '#2a4334', sp: '#3f6b4c', wall: '#1d2b22', top: '#4f7d5a' },
-    { f1: '#4a3352', f2: '#432e4a', sp: '#634470', wall: '#2a1c30', top: '#7a5585' },
-    { f1: '#55352f', f2: '#4d302a', sp: '#7a463a', wall: '#2e1b18', top: '#8a5444' },
+    // Dark stone dungeon. Deeper floors get more red.
+    { f1: '#3a3333', f2: '#352f2f', sp: '#4a4140', wall: '#1c1718', top: '#5d504c', blood: '#5a1418', bone: '#9c937f' },
+    { f1: '#382c2e', f2: '#33282a', sp: '#4a3739', wall: '#1a1214', top: '#634447', blood: '#62131a', bone: '#968a7a' },
+    { f1: '#3c2626', f2: '#372323', sp: '#552d2d', wall: '#1c0e0e', top: '#6e3733', blood: '#6c141b', bone: '#9a8673' },
+    { f1: '#302a36', f2: '#2c2632', sp: '#433a4e', wall: '#151118', top: '#554763', blood: '#55122a', bone: '#9893a6' },
   ];
 
   // ---------- Monsters ----------
   const ETYPES = {
-    slime: { r: 4, hp: 6, speed: 22, dmg: 1, xp: 1, color: '#38b764' },
-    bat: { r: 4, hp: 3, speed: 44, dmg: 1, xp: 1, color: '#a45fb8' },
-    skel: { r: 4, hp: 13, speed: 27, dmg: 2, xp: 2, color: '#f4f4f4' },
-    boss: { r: 9, hp: 90, speed: 19, dmg: 3, xp: 15, color: '#ef7d57' },
+    slime: { r: 4, hp: 6, speed: 22, dmg: 1, xp: 1, color: '#7a8a5a' },  // Zombie
+    bat: { r: 4, hp: 3, speed: 44, dmg: 1, xp: 1, color: '#b13e53' },    // Imp
+    skel: { r: 4, hp: 13, speed: 27, dmg: 2, xp: 2, color: '#d8cfb4' },  // Skeleton Warrior
+    boss: { r: 10, hp: 90, speed: 19, dmg: 3, xp: 15, color: '#b13e53' }, // Horned Demon
   };
 
   // ---------- Weapons ----------
@@ -240,7 +257,7 @@
   let t = 0;
   let floor = 1, kills = 0, pendingLevels = 0, dieT = 0;
   let best = parseInt(store.get(KEY_BEST, '0'), 10) || 0;
-  let map, bg, theme;
+  let map, bg, bgCtx, theme, torches = [];
   let p, enemies, pending, rockets, beams, zaps, booms, gems, hearts, parts, texts, stairs, fl;
   let weaponId = store.get(KEY_WEAPON, 'laser');
   if (!WEAPONS[weaponId]) weaponId = 'laser';
@@ -292,6 +309,17 @@
       made++;
     }
     theme = THEMES[Math.floor((floor - 1) / 2) % THEMES.length];
+    // Torches on wall faces (a wall tile with floor under it), not too close together.
+    torches = [];
+    for (let ty = 0; ty < ROOM_H - 1; ty++) {
+      for (let tx = 1; tx < ROOM_W - 1; tx++) {
+        if (!solidTile(tx, ty) || solidTile(tx, ty + 1)) continue;
+        if (Math.random() > 0.3) continue;
+        const x = tx * TILE + 8, y = ty * TILE + 8;
+        if (torches.some((o) => Math.hypot(o.x - x, o.y - y) < TILE * 3)) continue;
+        torches.push({ x, y, seed: Math.random() * 10 });
+      }
+    }
     renderRoom();
   }
 
@@ -299,6 +327,7 @@
     bg = document.createElement('canvas');
     bg.width = RW; bg.height = RH;
     const b = bg.getContext('2d');
+    bgCtx = b;
     for (let ty = 0; ty < ROOM_H; ty++) {
       for (let tx = 0; tx < ROOM_W; tx++) {
         const x = tx * TILE, y = ty * TILE;
@@ -316,6 +345,30 @@
           b.fillStyle = theme.sp;
           for (let i = 0; i < 3; i++) b.fillRect(x + randi(15), y + randi(15), 1, 1);
           if (Math.random() < 0.12) { b.fillRect(x + 3 + randi(8), y + 3 + randi(8), 3, 1); }
+          // Cracks
+          if (Math.random() < 0.1) {
+            b.fillStyle = theme.wall;
+            let cx = x + 2 + randi(10), cy = y + 2 + randi(10);
+            for (let i = 0; i < 5; i++) { b.fillRect(cx, cy, 1, 1); cx += randi(3) - 1; cy += 1; }
+          }
+          // Old blood stains
+          if (Math.random() < 0.06) {
+            b.fillStyle = theme.blood;
+            const bx = x + 3 + randi(8), by = y + 3 + randi(8);
+            for (let i = 0; i < 9; i++) b.fillRect(bx + randi(6) - 2, by + randi(4) - 1, 1 + randi(2), 1 + randi(2));
+          }
+          // Bones and skulls
+          const rb = Math.random();
+          if (rb < 0.05) {
+            b.fillStyle = theme.bone;
+            const bx = x + 3 + randi(8), by = y + 4 + randi(8);
+            if (Math.random() < 0.5) { b.fillRect(bx, by, 5, 1); b.fillRect(bx - 1, by - 1, 1, 3); b.fillRect(bx + 5, by - 1, 1, 3); }
+            else { b.fillRect(bx, by, 1, 5); b.fillRect(bx - 1, by - 1, 3, 1); b.fillRect(bx - 1, by + 5, 3, 1); }
+          } else if (rb < 0.065) {
+            const bx = x + 4 + randi(7), by = y + 4 + randi(7);
+            b.fillStyle = theme.bone; b.fillRect(bx, by, 4, 3); b.fillRect(bx + 1, by + 3, 2, 1);
+            b.fillStyle = PAL.k; b.fillRect(bx + 1, by + 1, 1, 1); b.fillRect(bx + 3, by + 1, 1, 1);
+          }
         }
       }
     }
@@ -669,7 +722,8 @@
     e.dead = true;
     kills++;
     burst(e.x, e.y, ETYPES[e.type].color, e.type === 'boss' ? 30 : 9, e.type === 'boss' ? 80 : 50);
-    burst(e.x, e.y, PAL.k, 4);
+    burst(e.x, e.y, '#6b0f1a', e.type === 'boss' ? 20 : 6, 60);
+    stampBlood(e.x, e.y, e.type === 'boss');
     sfx.kill();
     if (e.type === 'boss') {
       for (let i = 0; i < 6; i++) gems.push({ x: e.x, y: e.y, vx: rand(-60, 60), vy: rand(-60, 60), v: 3 });
@@ -1081,10 +1135,94 @@
     }
   }
 
+  // ---------- Torches and light ----------
+  // The dungeon is dark. Light shows only around the hero, torches, and weapon effects.
+  const lightC = document.createElement('canvas');
+  const lg = lightC.getContext('2d');
+  const lights = [];
+  function addLight(x, y, r, a = 1) { lights.push(x, y, r, a); }
+
+  function collectLights() {
+    const fl1 = 1 + Math.sin(t * 9) * 0.03 + Math.sin(t * 23) * 0.02;
+    if (p && state !== 'over') addLight(p.x, p.y - 2, 92 * fl1, state === 'dying' ? Math.max(0, dieT) : 1);
+    for (const tc of torches) addLight(tc.x, tc.y + 4, 48 * (1 + Math.sin(t * 11 + tc.seed) * 0.05), 0.95);
+    if (stairs) addLight(stairs.x, stairs.y, 30, 0.9);
+    for (const s of pending) addLight(s.x, s.y, 12, 0.6);
+    for (const gm of gems) addLight(gm.x, gm.y, 9, 0.7);
+    for (const h of hearts) addLight(h.x, h.y, 11, 0.8);
+    for (const b of beams) {
+      const k = b.life / b.max;
+      for (let d = 0; d <= b.len; d += 24) addLight(b.x + b.dx * d, b.y + b.dy * d, 30, k);
+    }
+    for (const z of zaps) { const k = z.life / z.max; for (const q of z.pts) addLight(q.x, q.y, 28, k); }
+    for (const r of rockets) addLight(r.x, r.y, 22, 0.9);
+    for (const b of booms) addLight(b.x, b.y, b.r * 2.4, b.life / b.max);
+    if (p && p.weapon === 'blades' && state !== 'dying' && state !== 'over') {
+      for (let i = 0; i < p.w.count; i++) { const bp = bladePos(i); addLight(bp.x, bp.y, 16, 0.7); }
+    }
+  }
+
+  function drawDarkness() {
+    collectLights();
+    const w = Math.ceil(viewW), h = Math.ceil(viewH);
+    if (lightC.width !== w || lightC.height !== h) { lightC.width = w; lightC.height = h; }
+    lg.globalCompositeOperation = 'source-over';
+    lg.clearRect(0, 0, w, h);
+    lg.fillStyle = 'rgba(4, 2, 6, 0.8)';
+    lg.fillRect(0, 0, w, h);
+    lg.globalCompositeOperation = 'destination-out';
+    for (let i = 0; i < lights.length; i += 4) {
+      const x = lights[i] - camX, y = lights[i + 1] - camY, r = lights[i + 2], a = Math.min(1, lights[i + 3]);
+      if (r <= 0 || a <= 0 || x < -r || y < -r || x > w + r || y > h + r) continue;
+      const gr = lg.createRadialGradient(x, y, 0, x, y, r);
+      gr.addColorStop(0, `rgba(0,0,0,${a})`);
+      gr.addColorStop(0.5, `rgba(0,0,0,${a * 0.7})`);
+      gr.addColorStop(1, 'rgba(0,0,0,0)');
+      lg.fillStyle = gr;
+      lg.fillRect(x - r, y - r, r * 2, r * 2);
+    }
+    lights.length = 0;
+    g.save();
+    g.imageSmoothingEnabled = true;
+    g.drawImage(lightC, 0, 0, w, h);
+    g.restore();
+  }
+
+  // Torch bracket (drawn before the darkness) and flame (drawn after, so it is bright).
+  function drawTorchBrackets() {
+    for (const tc of torches) {
+      const x = snap(tc.x - camX), y = snap(tc.y - camY);
+      g.fillStyle = PAL.k; g.fillRect(x - 1.5, y + 1, 3, 5);
+      g.fillStyle = '#5a4428'; g.fillRect(x - 1, y + 1, 2, 4);
+    }
+  }
+  function drawTorchFlames() {
+    for (const tc of torches) {
+      const f = Math.floor(t * 10 + tc.seed) % 3;
+      const x = tc.x - camX, y = tc.y - camY;
+      glow(tc.x, tc.y - 1, 16 + f, '#ff7a1a', 0.45);
+      g.fillStyle = '#ef7d57'; g.fillRect(x - 1.5, y - 3 - (f === 1 ? 1 : 0), 3, 4);
+      g.fillStyle = '#ffcd75'; g.fillRect(x - 1, y - 2 - (f === 2 ? 1 : 0), 2, 3);
+      g.fillStyle = '#ffffff'; g.fillRect(x - 0.5, y - 1, 1, 1);
+    }
+  }
+
+  // Blood on the floor where a monster dies (stays for the floor).
+  function stampBlood(x, y, big) {
+    if (!bgCtx) return;
+    bgCtx.fillStyle = theme.blood;
+    const n = big ? 14 : 6;
+    for (let i = 0; i < n; i++) {
+      const a = Math.random() * 6.283, d = Math.random() * (big ? 9 : 4);
+      const s = 1 + randi(big ? 3 : 2);
+      bgCtx.fillRect(Math.round(x + Math.cos(a) * d), Math.round(y + 2 + Math.sin(a) * d * 0.6), s, s);
+    }
+  }
+
   function render(dt) {
     updateCamera(dt);
     g.setTransform(R, 0, 0, R, 0, 0);
-    g.fillStyle = '#0e1122';
+    g.fillStyle = '#050304';
     g.fillRect(0, 0, viewW, viewH);
     g.drawImage(bg, -camX, -camY);
 
@@ -1131,15 +1269,18 @@
       else if (e.type === 'bat') { shadow(e.x, e.y + 6, 6); drawSpr(fast ? SPR.batB : SPR.batA, e.x, e.y - 2, false, white); }
       else if (e.type === 'skel') { shadow(e.x, e.y + 5, 8); drawSpr(SPR.skel, e.x, e.y - 1 - fast, p.x < e.x, white); }
       else if (e.type === 'boss') {
-        shadow(e.x, e.y + 7, 18);
+        shadow(e.x, e.y + 12, 22);
         drawSpr(fast ? SPR.bossB : SPR.bossA, e.x, e.y, false, white, 2);
-        const bw = 22, bx = snap(e.x - camX - bw / 2), by = snap(e.y - camY - 14);
+        const bw = 24, bx = snap(e.x - camX - bw / 2), by = snap(e.y - camY - 19);
         g.fillStyle = PAL.k; g.fillRect(bx - 1, by - 1, bw + 2, 4);
         g.fillStyle = '#ef4b5b'; g.fillRect(bx, by, Math.max(0, Math.round(bw * e.hp / e.maxHp)), 2);
       }
     }
 
     drawParticles(false);
+    drawTorchBrackets();
+    drawDarkness();
+    drawTorchFlames();
     drawWeaponFx();
     drawParticles(true);
     for (const x of texts) drawNum(x.val, x.x, x.y, x.heal ? '#a7f070' : '#ffffff');
@@ -1311,12 +1452,10 @@
   }
 
   // ---------- Input: fixed joystick (bottom middle) ----------
-  // The direction comes from the knob. A small push gives full speed,
-  // so the hero reacts at once and you control only the direction.
+  // The knob sets only the direction. There is no dead zone: any push gives
+  // full speed. The hero stops only when you lift your finger.
   const input = { x: 0, y: 0, id: null };
   const stick = $('stick'), knob = $('knob'), zone = $('touchZone');
-  const DEAD = 0.12;   // no move in this small center part
-  const FULL = 0.38;   // full speed from this part of the knob travel
 
   function moveStick(e) {
     const r = stick.getBoundingClientRect();
@@ -1326,11 +1465,10 @@
     const d = Math.hypot(dx, dy);
     const kd = Math.min(d, max);
     if (d > 0) { knob.style.transform = `translate(calc(-50% + ${(dx / d) * kd}px), calc(-50% + ${(dy / d) * kd}px))`; }
-    const m = kd / max;
-    if (m < DEAD) { input.x = 0; input.y = 0; return; }
-    const power = Math.min(1, (m - DEAD) / (FULL - DEAD));
-    input.x = (dx / d) * power;
-    input.y = (dy / d) * power;
+    // Exactly on the center (less than 1 px): keep the last direction.
+    if (d < 1) return;
+    input.x = dx / d;
+    input.y = dy / d;
   }
   function endStick(e) {
     if (e.pointerId !== input.id) return;

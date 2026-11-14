@@ -13,6 +13,12 @@ A small pixel art action RPG for phones. It is a PWA (you can install it and pla
 - Every 5th floor has a boss.
 - Your high score is your deepest floor. The game keeps it on your device.
 
+## Look
+
+Dark gothic dungeon: an armored hero with a hood and red cape, zombies, imps,
+skeleton warriors and a horned demon boss every 5th floor. Torches give
+flickering light; the rest of the dungeon is dark.
+
 ## Weapons
 
 | Weapon | What it does | Its upgrades |
