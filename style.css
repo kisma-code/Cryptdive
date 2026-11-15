@@ -315,7 +315,7 @@ html, body {
 .ov-weapon span { color: var(--ink); }
 
 /* ---------- Login and leaderboard ---------- */
-.overlay.login { z-index: 30; background: rgba(11, 13, 26, .96); }
+.overlay.login { z-index: 30; background: #0b0d1a; }
 .google-btn {
   display: flex;
   align-items: center;
