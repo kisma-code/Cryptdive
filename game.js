@@ -1827,7 +1827,7 @@
     setText(hud.lv, 'lv', 'LV ' + p.level);
     setText(hud.floor, 'fl', 'FLOOR ' + floor);
     const left = fl ? fl.toSpawn + pending.length + enemies.length : 0;
-    setText(hud.foe, 'foe', fl && fl.cleared ? 'GO TO STAIRS' : 'FOES ' + left);
+    setText(hud.foe, 'foe', fl && fl.cleared ? 'GO TO STAIRS' : 'ENEMIES ' + left);
   }
 
   // ---------- Screens ----------
