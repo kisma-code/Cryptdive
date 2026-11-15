@@ -61,6 +61,44 @@ function updateAccountUi() {
   }
 }
 
+// ---------- In-app browsers ----------
+// Apps like LINE, Instagram and Facebook open links in their own small browser.
+// Google does not allow sign-in there, and the sign-in pop-up is blocked.
+const UA = navigator.userAgent || '';
+const IS_LINE = /\bLine\//i.test(UA);
+const IN_APP = IS_LINE || /FBAN|FBAV|FB_IAB|FBIOS|Instagram|MicroMessenger|KAKAOTALK|musical_ly|TikTok|BytedanceWebview|Snapchat/i.test(UA);
+const EXT_PARAM = 'openExternalBrowser';
+
+function goExternal() {
+  // LINE opens the page in the phone's normal browser (Safari) when the link has ?openExternalBrowser=1.
+  const u = new URL(location.href);
+  u.searchParams.set(EXT_PARAM, '1');
+  location.replace(u.toString());
+}
+function showInAppNote() {
+  show('inAppNote');
+  // Only LINE supports the "open in the normal browser" link option.
+  if (!IS_LINE) hide('btnOpenExternal');
+  hide('btnGoogle');
+  setLoginMsg('');
+}
+if (IS_LINE && !new URL(location.href).searchParams.has(EXT_PARAM)) {
+  goExternal();
+} else if (!IN_APP && new URL(location.href).searchParams.has(EXT_PARAM)) {
+  // We are in the normal browser now: remove the extra part from the address.
+  const u = new URL(location.href);
+  u.searchParams.delete(EXT_PARAM);
+  history.replaceState(null, '', u.pathname + u.search + u.hash);
+}
+$('btnCopyLink').addEventListener('click', async () => {
+  const u = new URL(location.href);
+  u.searchParams.delete(EXT_PARAM);
+  const link = u.origin + u.pathname;
+  try { await navigator.clipboard.writeText(link); $('btnCopyLink').textContent = 'LINK COPIED!'; }
+  catch (e) { $('inAppLink').textContent = link; show('inAppLink'); }
+});
+$('btnOpenExternal').addEventListener('click', goExternal);
+
 // ---------- Start ----------
 updateAccountUi();
 if (configured) init();
@@ -80,10 +118,10 @@ async function init() {
     auth = fb.getAuth(firebaseApp);
     db = fb.getFirestore(firebaseApp);
     await fb.setPersistence(auth, fb.browserLocalPersistence);
-    fb.getRedirectResult(auth).catch((e) => setLoginMsg(errText(e), true));
     fb.onAuthStateChanged(auth, onUser);
     $('btnGoogle').disabled = false;
     setLoginMsg('');
+    if (IN_APP) showInAppNote();
   } catch (e) {
     setLoginMsg('COULD NOT LOAD LOGIN. CHECK YOUR INTERNET, THEN TAP TO TRY AGAIN.', true);
     $('btnGoogle').disabled = false;
@@ -135,8 +173,11 @@ $('btnGoogle').addEventListener('click', async () => {
     await fb.signInWithPopup(auth, provider);
   } catch (e) {
     const code = e && e.code;
+    // We do not use the redirect method: it fails when the browser keeps
+    // the sign-in data apart (Safari, and links opened from other apps).
     if (code === 'auth/popup-blocked' || code === 'auth/operation-not-supported-in-this-environment') {
-      try { await fb.signInWithRedirect(auth, provider); } catch (e2) { setLoginMsg(errText(e2), true); }
+      if (IN_APP) showInAppNote();
+      else setLoginMsg('THE SIGN-IN WINDOW WAS BLOCKED. ALLOW POP-UPS FOR THIS SITE, THEN TRY AGAIN.', true);
     } else if (code !== 'auth/popup-closed-by-user' && code !== 'auth/cancelled-popup-request') {
       setLoginMsg(errText(e), true);
     }
