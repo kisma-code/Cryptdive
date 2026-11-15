@@ -406,7 +406,94 @@
     return { x: gx / gl, y: gy / gl };
   }
 
-  function addPillars(W, H) {
+  // ----- Boss path finding -----
+  // The boss is bigger than 1 tile, so it moves on "big nodes": each node is a block of
+  // 2x2 open tiles, and the boss stands on the corner point in the middle of the block.
+  let bigDist = null, bigTile = -1;
+  const bigOpen = (i, j) => !solidTile(i, j) && !solidTile(i + 1, j) && !solidTile(i, j + 1) && !solidTile(i + 1, j + 1);
+  const bigCenter = (id) => ({ x: ((id % ROOM_W) + 1) * TILE, y: (((id / ROOM_W) | 0) + 1) * TILE });
+  function bigNodeNear(x, y) {
+    const pi = Math.round(x / TILE) - 1, pj = Math.round(y / TILE) - 1;
+    let best = -1, bd = 1e9;
+    for (let oj = -1; oj <= 1; oj++) {
+      for (let oi = -1; oi <= 1; oi++) {
+        const i = pi + oi, j = pj + oj;
+        if (i < 0 || j < 0 || i >= ROOM_W - 1 || j >= ROOM_H - 1 || !bigOpen(i, j)) continue;
+        const c = bigCenter(j * ROOM_W + i), d = Math.hypot(c.x - x, c.y - y);
+        if (d < bd) { bd = d; best = j * ROOM_W + i; }
+      }
+    }
+    return best;
+  }
+  function bigFlood(start, out) {
+    const W = ROOM_W;
+    out.fill(-1);
+    if (start < 0) return;
+    out[start] = 0;
+    const q = [start];
+    for (let k = 0; k < q.length; k++) {
+      const c = q[k], i = c % W, j = (c / W) | 0;
+      for (const [oi, oj] of DIRS4) {
+        const ni = i + oi, nj = j + oj, n = nj * W + ni;
+        if (ni < 0 || nj < 0 || ni >= W - 1 || nj >= ROOM_H - 1 || out[n] >= 0 || !bigOpen(ni, nj)) continue;
+        out[n] = out[c] + 1; q.push(n);
+      }
+    }
+  }
+  // Turn every open tile that no reachable big node covers into wall.
+  function fillBossGaps() {
+    const W = ROOM_W, H = ROOM_H, reach = new Int16Array(W * H);
+    const start = bigNodeNear(spawn.x, spawn.y);
+    if (start < 0) return; // should not happen; never wall off the whole room
+    bigFlood(start, reach);
+    const covered = new Uint8Array(W * H);
+    for (let id = 0; id < reach.length; id++) {
+      if (reach[id] < 0) continue;
+      const i = id % W, j = (id / W) | 0;
+      covered[j * W + i] = covered[j * W + i + 1] = covered[(j + 1) * W + i] = covered[(j + 1) * W + i + 1] = 1;
+    }
+    for (let i = 0; i < map.length; i++) if (map[i] !== T_WALL && !covered[i]) map[i] = T_WALL;
+  }
+  function updateBigFlow() {
+    const start = bigNodeNear(p.x, p.y);
+    if (start < 0 || start === bigTile) return;
+    bigTile = start;
+    bigFlood(start, bigDist);
+  }
+  function steerBig(e) {
+    const W = ROOM_W, cur = bigNodeNear(e.x, e.y);
+    if (cur < 0) return null;
+    const d0 = bigDist[cur];
+    if (d0 < 0) return null;
+    if (d0 <= 1) return null; // close: go straight to the hero
+    const i = cur % W, j = (cur / W) | 0;
+    let best = d0, target = -1;
+    for (const [oi, oj] of DIRS8) {
+      const ni = i + oi, nj = j + oj;
+      if (ni < 0 || nj < 0 || ni >= W - 1 || nj >= ROOM_H - 1) continue;
+      const v = bigDist[nj * W + ni];
+      if (v < 0 || v >= best) continue;
+      if (oi && oj && (!bigOpen(i + oi, j) || !bigOpen(i, j + oj))) continue;
+      best = v; target = nj * W + ni;
+    }
+    if (target < 0) return null;
+    const c = bigCenter(target), gx = c.x - e.x, gy = c.y - e.y, gl = Math.hypot(gx, gy) || 1;
+    return { x: gx / gl, y: gy / gl };
+  }
+  // A random place where the boss fits, far from the hero.
+  function bossSpot(minDist) {
+    const W = ROOM_W, nodes = [];
+    for (let j = 1; j < ROOM_H - 2; j++) {
+      for (let i = 1; i < W - 2; i++) {
+        if (!bigOpen(i, j)) continue;
+        const c = bigCenter(j * W + i);
+        if (Math.hypot(c.x - p.x, c.y - p.y) >= minDist) nodes.push(c);
+      }
+    }
+    return nodes.length ? nodes[randi(nodes.length)] : freeSpot(minDist);
+  }
+
+  function addPillars(W, H, gap = 1) {
     const want = 3 + randi(3) + Math.min(4, floor >> 1) + (W > 15 ? 3 : 0);
     const sx = Math.floor(spawn.x / TILE), sy = Math.floor(spawn.y / TILE);
     for (let i = 0, made = 0; i < 120 && made < want; i++) {
@@ -414,9 +501,12 @@
       const tx = 2 + randi(W - 4 - size + 1), ty = 2 + randi(H - 4 - size + 1);
       if (Math.abs(tx - sx) < 3 && Math.abs(ty - sy) < 3) continue;
       let free = true;
-      // Each pillar keeps a free ring around it, so no area is closed.
-      for (let y = ty - 1; y <= ty + size && free; y++) {
-        for (let x = tx - 1; x <= tx + size; x++) { if (map[y * W + x]) { free = false; break; } }
+      // Each pillar keeps a free ring around it (2 tiles wide on boss floors), so no area is closed.
+      for (let y = ty - gap; y <= ty + size - 1 + gap && free; y++) {
+        for (let x = tx - gap; x <= tx + size - 1 + gap; x++) {
+          if (x < 0 || y < 0 || x >= W || y >= H) continue;
+          if (map[y * W + x]) { free = false; break; }
+        }
       }
       if (!free) continue;
       for (let y = ty; y < ty + size; y++) for (let x = tx; x < tx + size; x++) map[y * W + x] = T_WALL;
@@ -464,7 +554,10 @@
     };
     wallRect(0, 0, W - 1, 0); wallRect(0, H - 1, W - 1, H - 1); wallRect(0, 0, 0, H - 1); wallRect(W - 1, 0, W - 1, H - 1);
 
-    const shape = area.shapes[randi(area.shapes.length)];
+    // Boss floors: no caves (they have narrow gaps where the big boss gets stuck).
+    const bossFloor = floor % 5 === 0;
+    const shapes = bossFloor ? area.shapes.filter((sh) => sh !== 'cave') : area.shapes;
+    const shape = shapes.length ? shapes[randi(shapes.length)] : 'ring';
     carpetCols = null;
     if (shape === 'cross') {
       const bw = Math.round(W * 0.3), bh = Math.round(H * 0.28);
@@ -512,11 +605,13 @@
         if (d < bestD) { bestD = d; spawn = { x: x * TILE + 8, y: y * TILE + 8 }; }
       }
     }
-    if (shape === 'rect' || shape === 'cross' || shape === 'L') addPillars(W, H);
+    if (shape === 'rect' || shape === 'cross' || shape === 'L') addPillars(W, H, bossFloor ? 2 : 1);
 
     // Close parts that the hero cannot reach.
     const seen = flood((v) => v !== T_WALL);
     for (let i = 0; i < map.length; i++) if (!seen[i]) map[i] = T_WALL;
+    // Boss floors: fill small corners where the big boss cannot fit (it needs 2x2 open tiles).
+    if (bossFloor) fillBossGaps();
 
     if (area.id === 'sewer') addPools(T_WATER, 3 + randi(3) + (W > 15 ? 2 : 0));
     if (area.id === 'lava') addPools(T_LAVA, 3 + randi(3) + (W > 15 ? 2 : 0));
@@ -527,6 +622,8 @@
     }
     distMap = new Int16Array(W * H);
     distTile = -1;
+    bigDist = new Int16Array(W * H);
+    bigTile = -1;
 
     // Torches on wall faces (a wall tile with floor under it), not too close together.
     torches = [];
@@ -755,7 +852,7 @@
       cleared: false,
     };
     if (boss) {
-      const s = freeSpot(90);
+      const s = bossSpot(90);
       pending.push({ type: 'boss', x: s.x, y: s.y, t: 1.4 });
     }
     let text = 'FLOOR ' + floor;
@@ -1218,13 +1315,14 @@
 
     // Enemies (they walk around walls with the distance map)
     updateFlow();
+    if (floor % 5 === 0) updateBigFlow();
     for (const e of enemies) {
       e.anim += dt;
       if (e.flash > 0) e.flash -= dt;
       let dx = p.x - e.x, dy = p.y - e.y;
       const d = Math.hypot(dx, dy) || 1;
       dx /= d; dy /= d;
-      const path = e.type === 'boss' ? null : steer(e);
+      const path = e.type === 'boss' ? steerBig(e) : steer(e);
       if (path) { dx = path.x; dy = path.y; }
       if (e.type === 'bat' || e.type === 'fireimp') {
         const wob = Math.sin(t * 6 + e.phase) * 0.7;
