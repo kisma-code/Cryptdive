@@ -2089,7 +2089,8 @@
   };
 
   const btnMute = $('btnMute');
-  function syncMute() { btnMute.classList.toggle('off', muted); }
+  // The sound switch is in the pause menu.
+  function syncMute() { btnMute.textContent = muted ? 'SOUND: OFF' : 'SOUND: ON'; }
   btnMute.addEventListener('click', () => { muted = !muted; store.set(KEY_MUTE, muted ? '1' : '0'); syncMute(); unlockAudio(); });
   syncMute();
 
