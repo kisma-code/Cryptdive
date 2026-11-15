@@ -1372,12 +1372,10 @@
 
 
   function updateCamera(dt) {
-    let tx = p.x - viewW / 2;
-    let ty = p.y - (viewH - bottomPad + topPad) / 2;
-    const minX = 0, maxX = RW - viewW;
-    tx = minX > maxX ? (minX + maxX) / 2 : clamp(tx, minX, maxX);
-    const minY = -topPad, maxY = RH - viewH + bottomPad;
-    ty = minY > maxY ? (minY + maxY) / 2 : clamp(ty, minY, maxY);
+    // The hero always stays in the middle of the play area
+    // (halfway between the top bar and the joystick), also at the room edges.
+    const tx = p.x - viewW / 2;
+    const ty = p.y - (viewH - bottomPad + topPad) / 2;
     // The camera locks to the hero, so the hero stays still on the screen
     // and only the world moves. (A delayed camera feels like dragging.)
     camBX = tx; camBY = ty; camSnap = false;
