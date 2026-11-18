@@ -20,6 +20,7 @@ const cloud = {
   showLogin,
   saveRun,
   saveBest,
+  saveClasses,
   openBoard,
   signOut: doSignOut,
 };
@@ -154,6 +155,8 @@ async function onUser(u) {
     if (cloudBest > localBest) game.setBest(cloudBest);
     if (cloud.data && cloud.data.weapon) game.setWeapon(cloud.data.weapon);
     if (localBest > cloudBest) saveBest(localBest);
+    // Class Souls and upgrades: keep the newer data, and send the device data when it is newer.
+    if (game.mergeClasses && game.mergeClasses(cloud.data && cloud.data.classes)) saveClasses(game.getClasses());
   }
   updateAccountUi();
   hide('scrLogin');
@@ -212,6 +215,8 @@ async function saveRun(run) {
   try {
     await fb.setDoc(fb.doc(db, 'players', cloud.user.uid), { ...next, updatedAt: fb.serverTimestamp() }, { merge: true });
     cloud.data = { ...d, ...next };
+    // The classes are saved in a second write, so the run is saved even if that write fails.
+    if (run.classes) saveClasses(run.classes, true);
     return 'ok';
   } catch (e) {
     return 'fail';
@@ -232,6 +237,22 @@ function saveBest(floor) {
       cloud.data = { ...d, ...next };
     } catch (e) { /* the run save at the end tries again */ }
   }, 500);
+}
+
+// Class Souls and upgrades (field "classes"). The record must exist first
+// (it is made by the first run save), because the rules check all fields.
+let classTimer = null, classData = null;
+function saveClasses(classes, now) {
+  classData = JSON.parse(JSON.stringify(classes));
+  if (!cloud.user || !db || !cloud.data) return;
+  clearTimeout(classTimer);
+  classTimer = setTimeout(async () => {
+    const data = classData;
+    try {
+      await fb.setDoc(fb.doc(db, 'players', cloud.user.uid), { classes: data, updatedAt: fb.serverTimestamp() }, { merge: true });
+      cloud.data = { ...cloud.data, classes: data };
+    } catch (e) { /* the next save tries again */ }
+  }, now ? 0 : 800);
 }
 
 // ---------- Leaderboard ----------

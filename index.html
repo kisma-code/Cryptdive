@@ -49,6 +49,7 @@
         <li>Your hero attacks by itself.</li>
         <li>Kill all monsters on the floor.</li>
         <li>Walk to the stairs. Go deeper.</li>
+        <li>Get Souls. Make your class stronger.</li>
       </ul>
       <div id="account" class="account hidden">PLAYER: <b id="accName"></b> <button id="btnSignOut" class="link-btn">SIGN OUT</button></div>
       <p id="guestNote" class="guest-note hidden">GUEST MODE (LOGIN IS NOT SET UP)</p>
@@ -60,9 +61,19 @@
 
     <!-- Weapon select -->
     <div id="scrWeapon" class="overlay hidden">
-      <h2>SELECT WEAPON</h2>
+      <h2>SELECT CLASS</h2>
       <div id="weaponCards"></div>
       <button id="btnWeaponBack" class="btn alt">BACK</button>
+    </div>
+
+    <!-- Class: spend Souls on permanent upgrades -->
+    <div id="scrClass" class="overlay hidden">
+      <h2 id="clsName">CLASS</h2>
+      <p class="cls-souls">SOULS: <b id="clsSouls">0</b></p>
+      <div id="clsUps"></div>
+      <p class="cls-help">CLASS BEST: FLOOR <span id="clsBest">0</span><br>FLOORS BELOW YOUR CLASS BEST HAVE<br>ONLY 1 ELITE MONSTER WITH ALL THE EXP.</p>
+      <button id="btnClassPlay" class="btn">PLAY</button>
+      <button id="btnClassBack" class="btn alt">BACK</button>
     </div>
 
     <!-- Level up -->
@@ -90,7 +101,8 @@
         <div><span>LEVEL</span><b id="ovLevel">1</b></div>
         <div><span>KILLS</span><b id="ovKills">0</b></div>
       </div>
-      <p class="ov-weapon">WEAPON: <span id="ovWeapon">-</span></p>
+      <p class="ov-weapon">CLASS: <span id="ovWeapon">-</span></p>
+      <p id="ovSouls" class="ov-souls"></p>
       <p id="ovSave" class="ov-save"></p>
       <button id="btnAgain" class="btn">PLAY AGAIN</button>
       <button id="btnOverBoard" class="btn alt hidden">LEADERBOARD</button>

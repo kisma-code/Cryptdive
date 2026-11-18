@@ -13,7 +13,7 @@ service cloud.firestore {
       // The best floor can only go up.
       allow create, update: if request.auth != null
         && request.auth.uid == uid
-        && request.resource.data.keys().hasOnly(['name', 'bestFloor', 'bestLevel', 'bestKills', 'weapon', 'runs', 'updatedAt'])
+        && request.resource.data.keys().hasOnly(['name', 'bestFloor', 'bestLevel', 'bestKills', 'weapon', 'runs', 'classes', 'updatedAt'])
         && request.resource.data.name is string
         && request.resource.data.name.size() <= 16
         && request.resource.data.bestFloor is int
@@ -24,6 +24,9 @@ service cloud.firestore {
         && request.resource.data.weapon is string
         && request.resource.data.weapon.size() <= 16
         && request.resource.data.runs is int
+        // Class Souls and upgrades: one small map for each class.
+        && (!('classes' in request.resource.data) || (request.resource.data.classes is map
+            && request.resource.data.classes.keys().hasOnly(['laser', 'lightning', 'boomerang', 'rockets'])))
         && request.resource.data.updatedAt == request.time
         && (resource == null || request.resource.data.bestFloor >= resource.data.bestFloor);
 
