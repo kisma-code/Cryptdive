@@ -601,13 +601,20 @@
 
   // ---------- Classes (permanent upgrades) ----------
   // Each class (= weapon) has its own Souls and 3 upgrades with no max level.
-  // Souls come at the end of a run: 1 for each floor reached, +5 for each boss killed.
+  // Souls come at the end of a run (game over or quit), for each COMPLETED floor:
+  // floors 1-5 give 1 each, 6-10 give 2 each, 11-15 give 3 each, ... and +5 for each boss killed.
+  // Example: end on floor 30 (floors 1-29 completed) = 99 Souls + bosses.
   const CLASS_UPS = [
     { id: 'atk', name: 'ATTACK', pic: 'damage', color: '#ef4b5b', tag: (l) => '+' + l * 10 + '%' },
     { id: 'spd', name: 'ATTACK SPEED', pic: 'speed', color: '#ffcd75', tag: (l) => '+' + l * 5 + '%' },
     { id: 'hp', name: 'MAX HP', pic: 'hp', color: '#ff7a8a', tag: (l) => '+' + l * 2 },
   ];
-  const classCost = (lvl) => 10 * (lvl + 1);
+  const classCost = (lvl) => 5 + 3 * lvl; // 5, 8, 11, 14, ...
+  function floorSouls(done) {
+    let n = 0;
+    for (let f = 1; f <= done; f++) n += 1 + Math.floor((f - 1) / 5);
+    return n;
+  }
   function cleanClass(c) {
     const n = (v) => Math.max(0, Math.min(1e6, Math.floor(+v || 0)));
     c = c || {};
@@ -2678,7 +2685,7 @@
       txt.append(name, document.createElement('br'), info);
       const up = document.createElement('button');
       up.className = 'up-btn';
-      up.textContent = 'UP ' + cost;
+      up.textContent = cost + ' SOULS';
       up.disabled = c.souls < cost;
       up.addEventListener('click', () => {
         if (c.souls < cost) return;
@@ -2698,7 +2705,7 @@
   function giveSouls() {
     if (soulsGiven || !p) return 0;
     soulsGiven = true;
-    const c = classes[p.weapon], n = floor + bossKills * 5;
+    const c = classes[p.weapon], n = floorSouls(floor - 1) + bossKills * 5;
     c.souls += n; c.earned += n; c.best = Math.max(c.best, floor);
     saveClasses(false);
     return n;

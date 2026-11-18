@@ -13,8 +13,10 @@ A small pixel art action RPG for phones. It is a PWA (you can install it and pla
 - At each new level, select 1 of 3 upgrades. At least 1 upgrade is for your weapon.
 - Every 5th floor has a boss.
 - Select 1 of 4 classes: Laser Beam, Chain Lightning, Boomerang, Fire Rockets.
-- When a run ends, your class gets Souls (1 for each floor, +5 for each boss).
+- When a run ends, your class gets Souls for each completed floor (floors 1-5:
+  1 each, 6-10: 2 each, 11-15: 3 each, ...) and +5 for each boss killed.
   Spend them on the class screen: ATTACK, ATTACK SPEED, MAX HP (no max level).
+  Upgrade costs: 5, 8, 11, 14, ... Souls.
 - Floors below your class best are fast: only 1 elite monster with all the EXP.
 - Your high score is your deepest floor. The game keeps it on your device.
 
