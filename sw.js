@@ -2,7 +2,7 @@
 // Online: always load the newest files from the network (then save a copy).
 // Offline: use the saved copy.
 // Change VERSION when you change a game file.
-const VERSION = 'pixel-depths-v29';
+const VERSION = 'pixel-depths-v30';
 const FILES = [
   './',
   './index.html',
