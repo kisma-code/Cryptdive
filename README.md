@@ -6,6 +6,7 @@ A small pixel art action RPG for phones. It is a PWA (you can install it and pla
 
 - Push START, then select a weapon.
 - Move with the joystick at the bottom middle of the screen.
+- On a computer: move with WASD or the arrow keys. Push Esc or P to pause.
 - Your weapon attacks the monsters automatically.
 - Kill all monsters on the floor. Then stairs show.
 - Walk to the stairs to go down one floor.

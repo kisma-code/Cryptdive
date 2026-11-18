@@ -153,6 +153,8 @@ html, body {
   z-index: 4;
   pointer-events: none;
 }
+/* Computer with no touch screen: no joystick (keyboard only). */
+.desktop #stick, .desktop #touchZone { display: none !important; }
 #stick.active { border-color: rgba(255, 255, 255, .45); background: rgba(255, 255, 255, .11); }
 #knob {
   position: absolute;

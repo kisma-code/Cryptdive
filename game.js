@@ -1,7 +1,8 @@
 'use strict';
 /*
  * Pixel Depths - a small pixel art action RPG.
- * Move with the joystick. The hero attacks automatically.
+ * Move with the joystick (phone) or WASD / arrow keys (computer).
+ * The hero attacks automatically.
  * Kill all monsters on a floor, then take the stairs down.
  * The high score is the deepest floor.
  */
@@ -23,6 +24,12 @@
 
   const $ = (id) => document.getElementById(id);
   const app = $('app');
+  // Computer with no touch screen: hide the joystick and use the keyboard.
+  const DESKTOP = !matchMedia('(any-pointer: coarse)').matches && !(navigator.maxTouchPoints > 0);
+  if (DESKTOP) {
+    document.documentElement.classList.add('desktop');
+    $('howMove').textContent = 'Use WASD to move.';
+  }
   const canvas = $('game');
   const ctx = canvas.getContext('2d');
   const g = ctx;
@@ -2111,15 +2118,29 @@
   zone.addEventListener('pointerup', endStick);
   zone.addEventListener('pointercancel', endStick);
 
-  // Keyboard (for tests on a computer)
+  // Keyboard (computer): WASD or arrow keys to move, Esc or P to pause.
+  // e.code is the key position, so WASD also works with other keyboard layouts.
   const key = { x: 0, y: 0 };
   const down = new Set();
+  const MOVE_KEYS = { KeyW: 1, KeyA: 1, KeyS: 1, KeyD: 1, ArrowUp: 1, ArrowDown: 1, ArrowLeft: 1, ArrowRight: 1 };
   function keyAxis() {
-    key.x = (down.has('ArrowRight') || down.has('d') ? 1 : 0) - (down.has('ArrowLeft') || down.has('a') ? 1 : 0);
-    key.y = (down.has('ArrowDown') || down.has('s') ? 1 : 0) - (down.has('ArrowUp') || down.has('w') ? 1 : 0);
+    key.x = (down.has('ArrowRight') || down.has('KeyD') ? 1 : 0) - (down.has('ArrowLeft') || down.has('KeyA') ? 1 : 0);
+    key.y = (down.has('ArrowDown') || down.has('KeyS') ? 1 : 0) - (down.has('ArrowUp') || down.has('KeyW') ? 1 : 0);
   }
-  addEventListener('keydown', (e) => { down.add(e.key.length === 1 ? e.key.toLowerCase() : e.key); keyAxis(); });
-  addEventListener('keyup', (e) => { down.delete(e.key.length === 1 ? e.key.toLowerCase() : e.key); keyAxis(); });
+  addEventListener('keydown', (e) => {
+    if (MOVE_KEYS[e.code]) {
+      down.add(e.code); keyAxis();
+      if (state === 'play') e.preventDefault();
+      return;
+    }
+    if ((e.code === 'Escape' || e.code === 'KeyP') && !e.repeat) {
+      if (state === 'play') pauseGame();
+      else if (state === 'paused') resumeGame();
+    }
+  });
+  addEventListener('keyup', (e) => { down.delete(e.code); keyAxis(); });
+  // Do not keep walking when the window loses focus (the key-up is lost).
+  addEventListener('blur', () => { down.clear(); keyAxis(); });
 
   // ---------- Sound ----------
   let actx = null;
@@ -2244,12 +2265,17 @@
     hudEl.classList.remove('hidden');
     const hb = hudEl.getBoundingClientRect().bottom - r.top;
     if (wasHidden) hudEl.classList.add('hidden');
-    const stWasHidden = stick.classList.contains('hidden');
-    stick.classList.remove('hidden');
-    const st = stick.getBoundingClientRect().top - r.top;
-    if (stWasHidden) stick.classList.add('hidden');
     topPad = Math.round((hb + 4) * cssToLogical);
-    bottomPad = Math.round((h - st + 8) * cssToLogical);
+    if (DESKTOP) {
+      // No joystick on a computer: the play area goes down to the bottom.
+      bottomPad = Math.round(8 * cssToLogical);
+    } else {
+      const stWasHidden = stick.classList.contains('hidden');
+      stick.classList.remove('hidden');
+      const st = stick.getBoundingClientRect().top - r.top;
+      if (stWasHidden) stick.classList.add('hidden');
+      bottomPad = Math.round((h - st + 8) * cssToLogical);
+    }
   }
   addEventListener('resize', resize);
   addEventListener('orientationchange', () => setTimeout(resize, 200));
