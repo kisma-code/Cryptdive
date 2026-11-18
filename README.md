@@ -17,7 +17,10 @@ A small pixel art action RPG for phones. It is a PWA (you can install it and pla
 ## Look
 
 Dark gothic dungeon: an armored hero with a hood and red cape, zombies, imps,
-skeleton warriors and a horned demon boss every 5th floor. Torches give
+skeleton warriors, skeleton archers (from floor 6) and ghosts (from floor 8).
+Every 5th floor has a boss: Horned Demon, Bone Lich (rings of slow bolts) and
+Plague Brute (charges) take turns. Some monsters shoot slow bullets; walls
+stop them. Monsters get more HP on each floor, and faster deeper. Torches give
 flickering light; the rest of the dungeon is dark.
 
 The dungeon changes every 5 floors:
@@ -28,9 +31,15 @@ The dungeon changes every 5 floors:
 | 6-10 | Flooded Sewer | water slows you | Sewer Slime (splits in 2) |
 | 11-15 | Lava Caves | lava hurts you | Fire Imp |
 | 16-20 | Bone Cathedral | pillar rows, carpet, candles | Bone Knight (charges) |
+| 21-25 | Frozen Catacombs | ice makes you faster | Frost Wraith (3 bolts) |
+| 26-30 | Fungal Hollow | swamp water, glowing mushrooms | Spore Bloater (bursts near you) |
+| 31-35 | Haunted Library | rows of bookshelves | Phantom (fades, appears near you) |
+| 36-40 | Blood Marsh | blood water slows you | Blood Leech (hops) |
+| 41-45 | Obsidian Forge | lava hurts you | Ember Golem (ring of fireballs) |
+| 46-50 | Abyss Gate | void pools hurt you | Void Eye (homing orb) |
 
-After floor 20 the areas repeat. Rooms have different shapes (rectangle,
-cross, L, ring, cave, hall) and sizes (small, medium, large).
+After floor 50 the areas repeat. Rooms have different shapes (rectangle,
+cross, L, ring, cave, hall, library) and sizes (small, medium, large).
 
 ## Weapons
 

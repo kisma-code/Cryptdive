@@ -53,6 +53,8 @@
     u: '#5b7a3a', U: '#8fae5a',
     // upgrade icon colors
     H: '#ef4b5b', O: '#ff8a2a', Y: '#ffd23f',
+    // deep area monsters
+    i: '#9be7ff', I: '#4a7fa8', v: '#5a2f8a', V: '#c06bff', F: '#d77fae', f: '#8a3f6a',
   };
 
   function sprite(rows, swap) {
@@ -381,6 +383,35 @@
     '....k..k....',
   ];
 
+  const LICH_TOP = [
+    '..kyk.kyk.kyk.',
+    '..kyyyyyyyyyk.',
+    '..kWWWWWWWWWk.',
+    '..kWkkWWWkkWk.',
+    '..kWkcWWWkcWk.',
+    '..kWWWWkWWWWk.',
+    '...kWkWkWkWk..',
+    '.kkpppppppppkk',
+    'kPkpppWppppkPk',
+    'kPkppWWWpppkPk',
+    '.k.pppWppppk.k',
+    '...ppppppppk..',
+  ];
+  const BRUTE_TOP = [
+    '....kkkkkk....',
+    '...ksssssk....',
+    '...ksRssRsk...',
+    '...kssssssk...',
+    '..kkskkkkskk..',
+    '.kssssssssssk.',
+    'ksskssDssksssk',
+    'kssksDsssksssk',
+    'ksskssssDksssk',
+    '.kkkssssssk.kk',
+    '...ksskssk....',
+    '...ksskssk....',
+  ];
+
   const SPR = {
     heroA: sprite([...HERO_TOP, '..knk.knk.', '..kk...kk.']),
     heroB: sprite([...HERO_TOP, '.knk...knk', '.kk.....kk']),
@@ -427,6 +458,52 @@
       '....kWkWk...',
       '....kk.kk...',
     ]),
+    // Monsters for all areas (deeper floors)
+    archer: sprite([
+      '..kkkkkk..k.',
+      '.kWWWWWWk.kok',
+      '.kWrWWrWk..ko',
+      '.kWWWWWWk..ko',
+      '..kWkkWk...ko',
+      '...kWWk....ko',
+      '.kkqWWqkkkkok',
+      'kWkqkkqkWWkok',
+      '..kqWWqk...ko',
+      '..kWkkWk...ko',
+      '..kWk.kWk.kok',
+      '..kk...kk..k.',
+    ]),
+    ghostA: sprite(['...kkkk...', '..kwwwwk..', '.kwwwwwwk.', '.kwkwwkwk.', '.kwkwwkwk.', '.kwwwwwwk.', '.kwwEEwwk.', '.kwwwwwwk.', '.kwkwwkwk.', '..k.kk.k..']),
+    ghostB: sprite(['...kkkk...', '..kwwwwk..', '.kwwwwwwk.', '.kwkwwkwk.', '.kwkwwkwk.', '.kwwwwwwk.', '.kwwEEwwk.', '.kwwwwwwk.', '.kkwwkwwk.', '...k..k...']),
+    // Area monsters (floors 21-50)
+    wraithA: sprite(['....kkkk....', '...kIIIIk...', '..kIkkkkIk..', '..kIkiikIk..', '..kIkkkkIk..', '.kIIIIIIIIk.', 'kiIIIiiIIIik', 'kikIIIIIIkik', '.k.kIIIIk.k.', '...kIIIIk...', '....kIIk....', '.....kk.....']),
+    wraithB: sprite(['....kkkk....', '...kIIIIk...', '..kIkkkkIk..', '..kIkiikIk..', '..kIkkkkIk..', '.kIIIIIIIIk.', 'kiIIIiiIIIik', 'kikIIIIIIkik', '.k.kIIIIk.k.', '...kIIIk....', '...kIIk.....', '....kk......']),
+    bloater: sprite(['....kkkk....', '..kkFFFFkk..', '.kFFwFFFFFk.', '.kFFFFFfFFk.', 'kFfFFkFFkFFk', 'kFFFFkFFkFFk', 'kFFFFFFFFfFk', '.kFFFFFFFFk.', '..kffffffk..', '...kkkkkk...']),
+    phantom: sprite(['...kkkk...', '..kppppk..', '.kpkkkkpk.', '.kpkcckpk.', '.kpkkkkpk.', '.kppppppk.', 'kPppppppPk', 'kPkppppkPk', '.k.kppk.k.', '...kppk...', '...kpk....', '....k.....']),
+    leechA: sprite(['...kkkkkk...', '.kkDHDHDHkk.', 'kwDHDHDHDHDk', 'kDHDHDHDHDk.', '.kkkkkkkkk..']),
+    leechB: sprite(['............', 'kkkkkkkkkkk.', 'wDHDHDHDHDHk', 'kkkkkkkkkkk.']),
+    golem: sprite([
+      '...kkkkkkkk...',
+      '..knnnnnnnnk..',
+      '..knyknnkynk..',
+      '..knnnnnnnnk..',
+      '.kknOOnnOOnkk.',
+      'knnnnOnnOnnnnk',
+      'knnnnnOOnnnnnk',
+      'knnkknnnnkknnk',
+      'knnk.knnk.knnk',
+      '.kk..knnk..kk.',
+      '....knnnnk....',
+      '...knnkknnk...',
+      '...knk..knk...',
+      '...kk....kk...',
+    ]),
+    eye: sprite(['...kkkk...', '.kkvvvvkk.', '.kvvVVvvk.', 'kvVwwwwVvk', 'kvVwkkwVvk', 'kvVwkkwVvk', 'kvVwwwwVvk', '.kvvVVvvk.', '.kkvvvvkk.', '...kkkk...']),
+    // Bosses (drawn at 2x)
+    lichA: sprite(LICH_TOP.concat(['..kppppppppk..', '..kpkpkpkpk...'])),
+    lichB: sprite(LICH_TOP.concat(['..kppppppppk..', '...kpkpkpkpk..'])),
+    bruteA: sprite(BRUTE_TOP.concat(['..kssk.kssk...', '..kkk...kkk...']), { s: 'z', R: 'y' }),
+    bruteB: sprite(BRUTE_TOP.concat(['...ksskssk....', '...kkk.kkk....']), { s: 'z', R: 'y' }),
     gem: sprite(['..k..', '.kck.', 'kcwck', '.kck.', '..k..']),
     gemBig: sprite(['..k..', '.kGk.', 'kGwGk', '.kGk.', '..k..']),
     heart: sprite(['.kk.kk.', 'krRkrrk', 'kRrrrrk', '.krrrk.', '..krk..', '...k...']),
@@ -454,12 +531,27 @@
     slime: { r: 4, hp: 6, speed: 22, dmg: 1, xp: 1, color: '#7a8a5a' },  // Zombie
     bat: { r: 4, hp: 3, speed: 44, dmg: 1, xp: 1, color: '#b13e53', fly: true }, // Imp
     skel: { r: 4, hp: 13, speed: 27, dmg: 2, xp: 2, color: '#d8cfb4' },  // Skeleton Warrior
-    boss: { r: 10, hp: 90, speed: 19, dmg: 3, xp: 15, color: '#b13e53' }, // Horned Demon
+    boss: { r: 10, hp: 90, speed: 19, dmg: 3, xp: 15, color: '#b13e53', boss: true }, // Horned Demon
+    lich: { r: 10, hp: 80, speed: 20, dmg: 3, xp: 15, color: '#a45fb8', boss: true },  // Bone Lich (bullet rings)
+    brute: { r: 10, hp: 120, speed: 17, dmg: 4, xp: 15, color: '#8a9a6b', boss: true }, // Plague Brute (charges)
+    // Monsters for all areas, on deeper floors
+    archer: { r: 4, hp: 9, speed: 24, dmg: 1, xp: 2, color: '#d8cfb4', shoot: true }, // Skeleton Archer
+    ghost: { r: 4, hp: 5, speed: 40, dmg: 1, xp: 2, color: '#c8d6e5', fly: true },     // Ghost
     // Area monsters
     sewer: { r: 4, hp: 10, speed: 20, dmg: 1, xp: 2, color: '#6f8f45' },   // Sewer Slime (splits in 2)
     fireimp: { r: 4, hp: 6, speed: 46, dmg: 2, xp: 2, color: '#f97316', fly: true }, // Fire Imp
     knight: { r: 5, hp: 32, speed: 18, dmg: 3, xp: 4, color: '#a7adbd' }, // Bone Knight (charges)
+    wraith: { r: 4, hp: 14, speed: 22, dmg: 2, xp: 3, color: '#9be7ff', fly: true, shoot: true }, // Frost Wraith (3 bolts)
+    bloater: { r: 5, hp: 16, speed: 20, dmg: 3, xp: 3, color: '#d77fae' },  // Spore Bloater (bursts near you)
+    phantom: { r: 4, hp: 12, speed: 30, dmg: 2, xp: 3, color: '#a45fb8', fly: true }, // Phantom (fades, appears near you)
+    leech: { r: 4, hp: 12, speed: 30, dmg: 2, xp: 3, color: '#7a1c2c' },   // Blood Leech (hops)
+    golem: { r: 6, hp: 45, speed: 15, dmg: 3, xp: 5, color: '#596079' },   // Ember Golem (fire ring)
+    eye: { r: 4, hp: 14, speed: 24, dmg: 2, xp: 3, color: '#c06bff', fly: true, shoot: true }, // Void Eye (homing orb)
   };
+  const isBoss = (e) => !!ETYPES[e.type].boss;
+  // Boss floors (every 5th) take turns: Horned Demon, Bone Lich, Plague Brute.
+  const BOSSES = ['boss', 'lich', 'brute'];
+  const BOSS_NAMES = { boss: 'HORNED DEMON', lich: 'BONE LICH', brute: 'PLAGUE BRUTE' };
 
   // ---------- Weapons ----------
   // Each weapon has its own base stats and 2 unique upgrades.
@@ -527,6 +619,7 @@
   let floor = 1, kills = 0, pendingLevels = 0, dieT = 0;
   let best = parseInt(store.get(KEY_BEST, '0'), 10) || 0;
   let map, bg, bgCtx, theme, torches = [];
+  let shots = []; // monster bullets
   let p, enemies, pending, rangs = [], rockets, beams, zaps, booms, gems, hearts, parts, texts, stairs, fl;
   // Orbit Blades was replaced by the Boomerang.
   const weaponFix = (id) => (id === 'blades' ? 'boomerang' : id);
@@ -550,7 +643,7 @@
   function clearLists() {
     hitfx = []; rings = [];
     enemies = []; pending = []; rockets = []; beams = []; zaps = []; booms = []; rangs = [];
-    gems = []; hearts = []; parts = []; texts = [];
+    gems = []; hearts = []; parts = []; texts = []; shots = [];
   }
 
   // ---------- Room ----------
@@ -572,12 +665,36 @@
       id: 'cathedral', name: 'BONE CATHEDRAL', monster: 'knight', shapes: ['hall', 'hall', 'cross'],
       theme: { f1: '#2a2430', f2: '#26202c', sp: '#3a3044', wall: '#120e16', top: '#4f4060', blood: '#55122a', bone: '#a29cb0', carpet: '#5a1420', trim: '#b8912a' },
     },
+    {
+      id: 'frost', name: 'FROZEN CATACOMBS', monster: 'wraith', shapes: ['rect', 'ring', 'cross'],
+      theme: { f1: '#2c3440', f2: '#28303b', sp: '#3f4b5c', wall: '#121820', top: '#5a6f88', blood: '#3a2a40', bone: '#b8c4d0', ice: '#6f9fc0', iceHi: '#d6f1ff' },
+    },
+    {
+      id: 'fungal', name: 'FUNGAL HOLLOW', monster: 'bloater', shapes: ['cave', 'cave', 'L'],
+      theme: { f1: '#2a2530', f2: '#26212c', sp: '#3d3346', wall: '#120e15', top: '#4a3550', blood: '#3a1a2a', bone: '#9a8f88', water: '#2f3d1f', waterHi: '#6f8f3a' },
+    },
+    {
+      id: 'library', name: 'HAUNTED LIBRARY', monster: 'phantom', shapes: ['library', 'library', 'rect'],
+      theme: { f1: '#2e2622', f2: '#2a221e', sp: '#3f342c', wall: '#160f0c', top: '#5a4232', blood: '#4a1418', bone: '#a89a84' },
+    },
+    {
+      id: 'marsh', name: 'BLOOD MARSH', monster: 'leech', shapes: ['ring', 'cave', 'cross'],
+      theme: { f1: '#2f2424', f2: '#2b2020', sp: '#432e2c', wall: '#170d0d', top: '#4f2a2a', blood: '#5a1418', bone: '#9c8a7f', water: '#4a0f18', waterHi: '#8a2a35' },
+    },
+    {
+      id: 'forge', name: 'OBSIDIAN FORGE', monster: 'golem', shapes: ['rect', 'hall', 'ring'],
+      theme: { f1: '#26262c', f2: '#222228', sp: '#36363f', wall: '#0e0e12', top: '#45454f', blood: '#4a1a12', bone: '#8a8580', lava: '#c2410c', lavaHi: '#fbbf24', carpet: '#3a2a20', trim: '#b85a1a' },
+    },
+    {
+      id: 'abyss', name: 'ABYSS GATE', monster: 'eye', shapes: ['ring', 'cross', 'cave'],
+      theme: { f1: '#1e1a26', f2: '#1b1722', sp: '#2c2538', wall: '#0a0810', top: '#3a2d50', blood: '#3a1450', bone: '#8a80a0', lava: '#3a1a5a', lavaLo: '#1a0a2a', lavaHi: '#c06bff', glow: '#9a4bff' },
+    },
   ];
   const SIZES = [[13, 17], [15, 23], [19, 29]]; // small, medium, large (tiles)
-  const T_FLOOR = 0, T_WALL = 1, T_WATER = 2, T_LAVA = 3;
+  const T_FLOOR = 0, T_WALL = 1, T_WATER = 2, T_LAVA = 3, T_ICE = 4;
   const DIRS4 = [[1, 0], [-1, 0], [0, 1], [0, -1]];
   const DIRS8 = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]];
-  let area = AREAS[0], spawn = { x: 120, y: 184 }, carpetCols = null, candles = [];
+  let area = AREAS[0], spawn = { x: 120, y: 184 }, carpetCols = null, candles = [], shrooms = [];
   let lavaTiles = [], waterTiles = [], distMap = null, distTile = -1;
   const areaIndex = (f) => Math.floor((f - 1) / 5) % AREAS.length;
   const tileAt = (px, py) => {
@@ -789,7 +906,8 @@
 
     // Boss floors: no caves (they have narrow gaps where the big boss gets stuck).
     const bossFloor = floor % 5 === 0;
-    const shapes = bossFloor ? area.shapes.filter((sh) => sh !== 'cave') : area.shapes;
+    // (The library shelves also make narrow paths.)
+    const shapes = bossFloor ? area.shapes.filter((sh) => sh !== 'cave' && sh !== 'library') : area.shapes;
     const shape = shapes.length ? shapes[randi(shapes.length)] : 'ring';
     carpetCols = null;
     if (shape === 'cross') {
@@ -827,6 +945,16 @@
       // Long rows of pillars, with a carpet down the middle.
       for (let y = 3; y < H - 3; y += 3) { map[y * W + 3] = T_WALL; map[y * W + W - 4] = T_WALL; }
       carpetCols = [cx - 1, cx, cx + 1];
+    } else if (shape === 'library') {
+      // Rows of bookshelves, each with 2 gaps to walk through.
+      for (let y = 3; y < H - 3; y += 4) {
+        if (Math.abs(y - cy) < 2) continue;
+        const g1 = 2 + randi(Math.max(1, (W >> 1) - 4)), g2 = (W >> 1) + randi(Math.max(1, (W >> 1) - 3));
+        for (let x = 2; x < W - 2; x++) {
+          if ((x >= g1 && x < g1 + 2) || (x >= g2 && x < g2 + 2)) continue;
+          map[y * W + x] = T_WALL;
+        }
+      }
     }
 
     // Start point: the open tile nearest to the center.
@@ -846,8 +974,8 @@
     // Boss floors: fill small corners where the big boss cannot fit (it needs 2x2 open tiles).
     if (bossFloor) fillBossGaps();
 
-    if (area.id === 'sewer') addPools(T_WATER, 3 + randi(3) + (W > 15 ? 2 : 0));
-    if (area.id === 'lava') addPools(T_LAVA, 3 + randi(3) + (W > 15 ? 2 : 0));
+    const pool = { sewer: T_WATER, fungal: T_WATER, marsh: T_WATER, frost: T_ICE, lava: T_LAVA, forge: T_LAVA, abyss: T_LAVA }[area.id];
+    if (pool !== undefined) addPools(pool, 3 + randi(3) + (W > 15 ? 2 : 0) + (area.id === 'marsh' ? 2 : 0));
     lavaTiles = []; waterTiles = [];
     for (let i = 0; i < map.length; i++) {
       if (map[i] === T_LAVA) lavaTiles.push(i);
@@ -876,6 +1004,16 @@
         for (const x of [4, W - 5]) if (map[y * W + x] === T_FLOOR && Math.random() < 0.7) candles.push({ x: x * TILE + 5 + randi(6), y: y * TILE + 6, seed: Math.random() * 10 });
       }
     }
+    // Glowing mushrooms in the Fungal Hollow
+    shrooms = [];
+    if (area.id === 'fungal') {
+      const want = 6 + (W > 15 ? 4 : 0);
+      for (let i = 0; i < 80 && shrooms.length < want; i++) {
+        const tx = 1 + randi(W - 2), ty = 1 + randi(H - 2);
+        if (map[ty * W + tx] !== T_FLOOR) continue;
+        shrooms.push({ x: tx * TILE + 4 + randi(8), y: ty * TILE + 6 + randi(6), seed: Math.random() * 10 });
+      }
+    }
     renderRoom();
   }
 
@@ -893,6 +1031,21 @@
     for (let ty = 0; ty < ROOM_H; ty++) {
       for (let tx = 0; tx < W; tx++) {
         const x = tx * TILE, y = ty * TILE, v = map[ty * W + tx];
+        if (v === T_WALL && area.id === 'library' && tx > 0 && ty > 0 && tx < W - 1 && ty < ROOM_H - 1) {
+          // Bookshelf
+          b.fillStyle = '#3a2418'; b.fillRect(x, y, TILE, TILE);
+          b.fillStyle = theme.top; b.fillRect(x, y, TILE, 2);
+          for (const row of [3, 9]) {
+            for (let bx = x + 1; bx < x + 15;) {
+              const bw = Math.min(1 + randi(2), x + 15 - bx);
+              b.fillStyle = BOOKS[randi(BOOKS.length)];
+              b.fillRect(bx, y + row + randi(2), bw, 5);
+              bx += bw;
+            }
+          }
+          b.fillStyle = '#1a0f0a'; b.fillRect(x, y + 8, TILE, 1); b.fillRect(x, y + 14, TILE, 2);
+          continue;
+        }
         if (v === T_WALL) {
           b.fillStyle = theme.wall; b.fillRect(x, y, TILE, TILE);
           b.fillStyle = theme.top; b.fillRect(x, y, TILE, 2);
@@ -913,10 +1066,18 @@
         }
         if (v === T_LAVA) {
           b.fillStyle = theme.lava; b.fillRect(x, y, TILE, TILE);
-          b.fillStyle = '#7c2d12';
+          b.fillStyle = theme.lavaLo || '#7c2d12';
           for (let i = 0; i < 4; i++) b.fillRect(x + randi(13), y + randi(13), 2 + randi(3), 2 + randi(2));
           b.fillStyle = theme.lavaHi;
           for (let i = 0; i < 3; i++) b.fillRect(x + randi(14), y + randi(14), 2, 1);
+          continue;
+        }
+        if (v === T_ICE) {
+          b.fillStyle = theme.ice; b.fillRect(x, y, TILE, TILE);
+          b.fillStyle = theme.iceHi;
+          for (let i = 0; i < 2; i++) { const ix = x + 1 + randi(9), iy = y + 2 + randi(11); b.fillRect(ix, iy, 4, 1); b.fillRect(ix + 4, iy - 1, 2, 1); }
+          b.fillStyle = 'rgba(0,0,0,.25)';
+          if (tileIs(tx, ty - 1, T_FLOOR)) b.fillRect(x, y, TILE, 1);
           continue;
         }
         // Floor
@@ -944,6 +1105,12 @@
           b.fillStyle = '#3f5a2a';
           const mx = x + randi(12), my = y + randi(12);
           for (let i = 0; i < 5; i++) b.fillRect(mx + randi(4), my + randi(3), 1, 1);
+        }
+        // Frost on the floor
+        if (area.id === 'frost' && Math.random() < 0.3) {
+          b.fillStyle = '#5f7790';
+          const fx = x + randi(12), fy = y + randi(12);
+          for (let i = 0; i < 4; i++) b.fillRect(fx + randi(4), fy + randi(4), 1, 1);
         }
         // Old blood stains
         if (Math.random() < 0.06) {
@@ -975,6 +1142,33 @@
           b.fillStyle = PAL.k; b.fillRect(bx, by, 8, 8);
           b.fillStyle = '#4a5250';
           for (let i = 0; i < 4; i++) b.fillRect(bx + 1 + i * 2, by + 1, 1, 6);
+        } else if (area.id === 'fungal' && rb < 0.12) {
+          // Small mushrooms
+          const bx = x + 3 + randi(9), by = y + 4 + randi(8);
+          b.fillStyle = '#c8bfa0'; b.fillRect(bx + 1, by + 1, 1, 2);
+          b.fillStyle = '#8a3f6a'; b.fillRect(bx, by, 3, 1);
+          if (Math.random() < 0.5) { b.fillStyle = '#c8bfa0'; b.fillRect(bx + 4, by + 3, 1, 1); b.fillStyle = '#d77fae'; b.fillRect(bx + 3, by + 2, 3, 1); }
+        } else if (area.id === 'library' && rb < 0.1) {
+          // Old pages
+          b.fillStyle = '#a89a84'; b.fillRect(x + 3 + randi(8), y + 3 + randi(9), 3, 2);
+        } else if (area.id === 'marsh' && rb < 0.1) {
+          // Dead reeds
+          const bx = x + 3 + randi(9), by = y + 6 + randi(6);
+          b.fillStyle = '#4a3226';
+          for (let i = 0; i < 3; i++) b.fillRect(bx + i * 2, by - randi(3), 1, 4 + randi(2));
+        } else if (area.id === 'forge' && rb < 0.08) {
+          // Hot grate
+          const bx = x + 4, by = y + 4;
+          b.fillStyle = PAL.k; b.fillRect(bx, by, 8, 8);
+          b.fillStyle = '#7c2d12'; b.fillRect(bx + 1, by + 1, 6, 6);
+          b.fillStyle = '#2a2a30';
+          for (let i = 0; i < 4; i++) b.fillRect(bx + 1 + i * 2, by + 1, 1, 6);
+        } else if (area.id === 'abyss' && rb < 0.08) {
+          // Rune circle
+          const bx = x + 4, by = y + 4;
+          b.fillStyle = '#4a2a70';
+          b.fillRect(bx + 2, by, 4, 1); b.fillRect(bx + 2, by + 7, 4, 1); b.fillRect(bx, by + 2, 1, 4); b.fillRect(bx + 7, by + 2, 1, 4);
+          b.fillRect(bx + 3, by + 3, 2, 2);
         }
       }
     }
@@ -988,6 +1182,7 @@
       }
     }
   }
+  const BOOKS = ['#5a1420', '#2a3f5a', '#3a5a2a', '#6b4a2a', '#4a2a5a', '#8a7a3a'];
   function tileIs(tx, ty, v) {
     if (tx < 0 || ty < 0 || tx >= ROOM_W || ty >= ROOM_H) return false;
     return map[ty * ROOM_W + tx] === v;
@@ -1019,10 +1214,19 @@
       const x = tx * TILE - camX, y = ty * TILE - camY;
       if (x < -TILE || y < -TILE || x > viewW || y > viewH) continue;
       g.globalAlpha = 0.2 + 0.08 * Math.sin(t * 1.4 + tx * 0.7 + ty * 0.5);
-      g.fillStyle = '#ff7a1a';
+      g.fillStyle = theme.glow || '#ff7a1a';
       g.fillRect(x, y, TILE, TILE);
     }
     g.restore();
+  }
+  function drawShrooms() {
+    for (const c of shrooms) {
+      const x = c.x - camX, y = c.y - camY;
+      glow(c.x, c.y - 1, 10, '#5ff5c8', 0.3 + 0.08 * Math.sin(t * 1.5 + c.seed)); // slow pulse, no flashing
+      g.fillStyle = '#c8bfa0'; g.fillRect(x - 0.5, y - 1, 1.5, 3);
+      g.fillStyle = '#5ff5c8'; g.fillRect(x - 2, y - 2, 5, 1.5);
+      g.fillStyle = '#b8fff0'; g.fillRect(x - 1, y - 2.5, 2, 1);
+    }
   }
   function drawCandles() {
     for (const c of candles) {
@@ -1084,13 +1288,14 @@
       maxAlive: Math.min(10 + floor * 2, 40),
       cleared: false,
     };
+    const bt = BOSSES[(floor / 5 - 1) % BOSSES.length];
     if (boss) {
       const s = bossSpot(90);
-      pending.push({ type: 'boss', x: s.x, y: s.y, t: 1.4 });
+      pending.push({ type: bt, x: s.x, y: s.y, t: 1.4 });
     }
     let text = 'FLOOR ' + floor;
     if ((floor - 1) % 5 === 0) text += '\n' + area.name; // a new area starts
-    if (boss) text += '\nBOSS!';
+    if (boss) text += '\n' + BOSS_NAMES[bt] + '!';
     showBanner(text);
   }
 
@@ -1098,6 +1303,8 @@
     const w = [['slime', 5]];
     if (floor >= 2) w.push(['bat', 2 + Math.min(4, floor * 0.5)]);
     if (floor >= 3) w.push(['skel', 1 + Math.min(5, floor * 0.6)]);
+    if (floor >= 6) w.push(['archer', 1 + Math.min(3, floor * 0.12)]);
+    if (floor >= 8) w.push(['ghost', 1 + Math.min(3, floor * 0.12)]);
     if (area.monster) w.push([area.monster, 3 + Math.min(4, floor * 0.15)]);
     let sum = 0; for (const [, n] of w) sum += n;
     let r = Math.random() * sum;
@@ -1107,7 +1314,9 @@
 
   function makeEnemy(type, x, y) {
     const d = ETYPES[type];
-    const hm = 1 + 0.3 * (floor - 1);
+    // HP grows faster on each floor: floor 10 = about 4.7x, floor 20 = 11x, floor 30 = 20x.
+    const f1 = floor - 1;
+    const hm = 1 + 0.3 * f1 + 0.013 * f1 * f1;
     const sm = 1 + Math.min(0.4, (floor - 1) * 0.03);
     return {
       type, x, y, r: d.r, hp: d.hp * hm, maxHp: d.hp * hm,
@@ -1115,6 +1324,8 @@
       dmg: d.dmg + Math.floor((floor - 1) / 4), xp: d.xp,
       flash: 0, anim: Math.random() * 2, kx: 0, ky: 0, summonT: 4, phase: Math.random() * 6.28,
       dashCd: 2 + Math.random(), dash: 0, warn: 0, ddx: 0, ddy: 0,
+      shotT: 1 + Math.random() * 1.5, blinkT: 3 + Math.random() * 2, fade: 0, appear: 0, swell: 0,
+      hopT: Math.random(), stompT: 2 + Math.random() * 2, ringT: 2.5,
     };
   }
 
@@ -1426,7 +1637,7 @@
     if (crit) dmg *= 2;
     e.hp -= dmg;
     e.flash = crit ? 0.16 : 0.1;
-    const kb = (e.type === 'boss' ? 25 : 90) * kbMul * (crit ? 1.6 : 1);
+    const kb = (isBoss(e) ? 25 : 90) * kbMul * (crit ? 1.6 : 1);
     e.kx += dirX * kb; e.ky += dirY * kb;
     const W = WEAPONS[p.weapon];
     hitSpark(e.x, e.y - 1, dirX, dirY, W.color, crit);
@@ -1438,11 +1649,13 @@
   function killEnemy(e) {
     e.dead = true;
     kills++;
-    burst(e.x, e.y, ETYPES[e.type].color, e.type === 'boss' ? 30 : 9, e.type === 'boss' ? 80 : 50);
-    burst(e.x, e.y, '#6b0f1a', e.type === 'boss' ? 20 : 6, 60);
-    stampBlood(e.x, e.y, e.type === 'boss');
+    const big = isBoss(e);
+    burst(e.x, e.y, ETYPES[e.type].color, big ? 30 : 9, big ? 80 : 50);
+    burst(e.x, e.y, '#6b0f1a', big ? 20 : 6, 60);
+    stampBlood(e.x, e.y, big);
+    if (e.type === 'bloater') { spark(e.x, e.y, '#d77fae', 12, 70, 0.45, 2); smoke(e.x, e.y, 5, 3, 8); }
     sfx.kill();
-    if (e.type === 'boss') {
+    if (big) {
       for (let i = 0; i < 6; i++) gems.push({ x: e.x, y: e.y, vx: rand(-60, 60), vy: rand(-60, 60), v: 3 });
       hearts.push({ x: e.x, y: e.y });
       shake = 6;
@@ -1486,6 +1699,144 @@
     }
   }
 
+  // ---------- Monster moves and bullets ----------
+  // Is there no wall between 2 points?
+  function los(x0, y0, x1, y1) {
+    const n = Math.ceil(Math.hypot(x1 - x0, y1 - y0) / 6);
+    for (let i = 1; i < n; i++) {
+      const k = i / n;
+      if (solidTile(Math.floor((x0 + (x1 - x0) * k) / TILE), Math.floor((y0 + (y1 - y0) * k) / TILE))) return false;
+    }
+    return true;
+  }
+  // A free spot at a distance between a and b from (x, y).
+  function nearSpot(x, y, a, b) {
+    for (let i = 0; i < 24; i++) {
+      const ang = Math.random() * 6.283, r = rand(a, b);
+      const nx = x + Math.cos(ang) * r, ny = y + Math.sin(ang) * r;
+      const tx = Math.floor(nx / TILE), ty = Math.floor(ny / TILE);
+      if (solidTile(tx, ty) || map[ty * ROOM_W + tx] === T_LAVA) continue;
+      return { x: tx * TILE + 8, y: ty * TILE + 8 };
+    }
+    return null;
+  }
+  function phantomAlpha(e) {
+    if (e.type !== 'phantom') return 1;
+    if (e.fade > 0) return e.fade / 0.5;
+    if (e.appear > 0) return 1 - e.appear / 0.5;
+    return 1;
+  }
+  // Slow bullets. They stop at walls. home > 0: the bullet turns to the hero.
+  function fireShot(x, y, a, sp, dmg, color, home = 0) {
+    shots.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, sp, dmg, color, home, life: home ? 4 : 3.5 });
+  }
+  function updateShots(dt) {
+    for (const s of shots) {
+      if (s.home) {
+        let a = Math.atan2(s.vy, s.vx), da = Math.atan2(p.y - s.y, p.x - s.x) - a;
+        while (da > Math.PI) da -= Math.PI * 2;
+        while (da < -Math.PI) da += Math.PI * 2;
+        a += clamp(da, -s.home * dt, s.home * dt);
+        s.vx = Math.cos(a) * s.sp; s.vy = Math.sin(a) * s.sp;
+      }
+      s.x += s.vx * dt; s.y += s.vy * dt; s.life -= dt;
+      if (s.life <= 0 || solidTile(Math.floor(s.x / TILE), Math.floor(s.y / TILE))) {
+        s.dead = true; spark(s.x, s.y, s.color, 3, 30, 0.25, 1.5);
+      } else if (Math.hypot(p.x - s.x, p.y - s.y) < p.r + 2) {
+        s.dead = true; spark(s.x, s.y, s.color, 5, 40, 0.3, 1.5);
+        hurtPlayer(s.dmg, null);
+      }
+    }
+    shots = shots.filter((s) => !s.dead);
+  }
+  function drawShots() {
+    for (const s of shots) {
+      glow(s.x, s.y, 7, s.color, 0.55);
+      const x = snap(s.x - camX), y = snap(s.y - camY);
+      g.fillStyle = s.color; g.fillRect(x - 1.5, y - 1.5, 3, 3);
+      g.fillStyle = '#ffffff'; g.fillRect(x - 0.5, y - 0.5, 1, 1);
+    }
+  }
+  // Special moves of the newer monsters. Returns how to change the walk:
+  // 'away' (step back), 'stop', 'slow', a speed factor, 'gone' (the monster died), or nothing.
+  function monsterMove(e, dt, d, ux, uy) {
+    const T = e.type, dm = Math.max(1, e.dmg - 1);
+    const aim = Math.atan2(p.y - e.y, p.x - e.x);
+    if (ETYPES[T].shoot) {
+      // Shooters keep some distance, and shoot when they can see the hero.
+      const see = d < 130 && los(e.x, e.y, p.x, p.y);
+      e.shotT -= dt;
+      if (see && e.shotT <= 0) {
+        if (T === 'archer') { e.shotT = 2.4; fireShot(e.x, e.y, aim, 55, dm, '#ffcd75'); }
+        else if (T === 'wraith') { e.shotT = 3; for (const o of [-0.3, 0, 0.3]) fireShot(e.x, e.y, aim + o, 45, dm, '#9be7ff'); }
+        else { e.shotT = 2.8; fireShot(e.x, e.y, aim, 38, dm, '#c06bff', 1.3); }
+        sfx.shoot();
+      }
+      if (see && d < 50) return 'away';
+      if (see && d < 85) return 'stop';
+      return;
+    }
+    if (T === 'phantom') {
+      e.blinkT -= dt;
+      if (e.fade > 0) {
+        e.fade -= dt;
+        if (e.fade <= 0) {
+          const s = nearSpot(p.x, p.y, 36, 60);
+          if (s) { e.x = s.x; e.y = s.y; }
+          e.appear = 0.5;
+        }
+        return 'stop';
+      }
+      if (e.appear > 0) { e.appear -= dt; return 'slow'; }
+      if (e.blinkT <= 0 && d > 45) { e.fade = 0.5; e.blinkT = 4 + Math.random() * 2; }
+      return;
+    }
+    if (T === 'bloater') {
+      if (e.swell > 0) {
+        e.swell -= dt;
+        if (e.swell <= 0) {
+          // Burst: hurts the hero when close.
+          if (Math.hypot(p.x - e.x, p.y - e.y) < 26) hurtPlayer(e.dmg, null);
+          ring(e.x, e.y, 3, 26, '#d77fae', 0.35, 2);
+          e.hp = 0; killEnemy(e);
+          return 'gone';
+        }
+        return 'stop';
+      }
+      if (d < 20) e.swell = 0.7;
+      return;
+    }
+    if (T === 'leech') {
+      // Hops: a fast jump, then a short rest.
+      e.hopT -= dt;
+      if (e.hopT <= 0) e.hopT = 0.85;
+      return e.hopT > 0.5 ? 2.6 : 0.15;
+    }
+    if (T === 'golem') {
+      e.stompT -= dt;
+      if (e.warn > 0) {
+        e.warn -= dt;
+        if (e.warn <= 0) {
+          const a0 = Math.random() * 6.283;
+          for (let i = 0; i < 6; i++) fireShot(e.x, e.y, a0 + (i * Math.PI) / 3, 40, dm, '#ff8a2a');
+          shake = Math.max(shake, 1.5); sfx.shoot();
+        }
+        return 'stop';
+      }
+      if (e.stompT <= 0 && d < 110) { e.warn = 0.6; e.stompT = 4.5; }
+      return;
+    }
+    if (T === 'lich') {
+      e.ringT -= dt;
+      if (e.ringT <= 0 && d < 170) {
+        e.ringT = 3.2;
+        const a0 = Math.random() * 6.283;
+        for (let i = 0; i < 8; i++) fireShot(e.x, e.y, a0 + (i * Math.PI) / 4, 36, dm, '#b98cff');
+        sfx.shoot();
+      }
+    }
+  }
+
   // ---------- Update ----------
   function update(dt) {
     t += dt;
@@ -1504,7 +1855,7 @@
     // Ease the speed to the joystick value: soft but fast start and stop.
     // Instant control: the hero moves and stops with the finger.
     const under = tileAt(p.x, p.y);
-    const slow = under === T_WATER ? 0.6 : 1;
+    const slow = under === T_WATER ? 0.6 : under === T_ICE ? 1.25 : 1; // water slows, ice is fast
     p.vx = mx * p.speed * slow;
     p.vy = my * p.speed * slow;
     const ox = p.x, oy = p.y;
@@ -1555,39 +1906,50 @@
       let dx = p.x - e.x, dy = p.y - e.y;
       const d = Math.hypot(dx, dy) || 1;
       dx /= d; dy /= d;
-      const path = e.type === 'boss' ? steerBig(e) : steer(e);
+      const ux = dx, uy = dy; // straight to the hero
+      const path = isBoss(e) ? steerBig(e) : steer(e);
       if (path) { dx = path.x; dy = path.y; }
-      if (e.type === 'bat' || e.type === 'fireimp') {
+      if (e.type === 'bat' || e.type === 'fireimp' || e.type === 'ghost') {
         const wob = Math.sin(t * 6 + e.phase) * 0.7;
         const ox = dx;
         dx += -dy * wob; dy += ox * wob;
       }
       let spd = e.speed;
-      if (!ETYPES[e.type].fly && tileAt(e.x, e.y) === T_WATER) spd *= 0.6;
-      if (e.type === 'knight') {
-        // Bone Knight: stops for a moment, then charges.
+      if (!ETYPES[e.type].fly) {
+        const under = tileAt(e.x, e.y);
+        if (under === T_WATER) spd *= 0.6; else if (under === T_ICE) spd *= 1.25;
+      }
+      if (e.type === 'knight' || e.type === 'brute') {
+        // Bone Knight and Plague Brute: stop for a moment, then charge.
+        const bk = e.type === 'brute';
         e.dashCd -= dt;
-        if (e.dash > 0) { e.dash -= dt; dx = e.ddx; dy = e.ddy; spd *= 3.2; }
+        if (e.dash > 0) { e.dash -= dt; dx = e.ddx; dy = e.ddy; spd *= bk ? 2.8 : 3.2; }
         else if (e.warn > 0) {
           e.warn -= dt; spd = 0;
-          if (e.warn <= 0) { e.dash = 0.45; e.ddx = dx; e.ddy = dy; }
-        } else if (e.dashCd <= 0 && d < 80 && d > 18) { e.warn = 0.4; e.dashCd = 3.2; }
+          if (e.warn <= 0) { e.dash = bk ? 0.6 : 0.45; e.ddx = ux; e.ddy = uy; }
+        } else if (e.dashCd <= 0 && d < (bk ? 130 : 80) && d > 18) { e.warn = bk ? 0.7 : 0.4; e.dashCd = bk ? 4 : 3.2; }
       }
+      const r = monsterMove(e, dt, d, ux, uy);
+      if (r === 'gone') continue;
+      if (r === 'away') { dx = -ux; dy = -uy; spd *= 0.8; } else if (r === 'stop') spd = 0;
+      else if (r === 'slow') spd *= 0.3; else if (typeof r === 'number') spd *= r;
       e.x += (dx * spd + e.kx) * dt;
       e.y += (dy * spd + e.ky) * dt;
       const f = Math.exp(-9 * dt);
       e.kx *= f; e.ky *= f;
       collide(e);
 
-      if (e.type === 'boss') {
+      if (e.type === 'boss' || e.type === 'lich') {
+        // The Horned Demon calls zombies; the Bone Lich calls skeletons.
         e.summonT -= dt;
         if (e.summonT <= 0 && enemies.length < 30) {
-          e.summonT = 5;
-          for (let i = 0; i < 2; i++) pending.push({ type: 'slime', x: e.x + rand(-14, 14), y: e.y + rand(-14, 14), t: 0.6 });
+          e.summonT = e.type === 'lich' ? 7 : 5;
+          for (let i = 0; i < 2; i++) pending.push({ type: e.type === 'lich' ? 'skel' : 'slime', x: e.x + rand(-14, 14), y: e.y + rand(-14, 14), t: 0.6 });
         }
       }
 
-      if (d < e.r + p.r) hurtPlayer(e.dmg, e);
+      // A faded phantom cannot touch the hero.
+      if (d < e.r + p.r && phantomAlpha(e) > 0.6) hurtPlayer(e.dmg, e);
     }
 
     // Keep monsters apart
@@ -1599,13 +1961,15 @@
         const d2 = dx * dx + dy * dy;
         if (d2 < min * min && d2 > 0.0001) {
           const d = Math.sqrt(d2), push = (min - d) / 2;
-          const wa = b.type === 'boss' ? 1.6 : a.type === 'boss' ? 0.4 : 1;
+          const wa = isBoss(b) ? 1.6 : isBoss(a) ? 0.4 : 1;
           a.x -= (dx / d) * push * wa; a.y -= (dy / d) * push * wa;
           b.x += (dx / d) * push * (2 - wa); b.y += (dy / d) * push * (2 - wa);
         }
       }
     }
 
+    updateShots(dt);
+    if (state !== 'play' && state !== 'dying') return;
     updateWeaponFx(dt);
     enemies = enemies.filter((e) => !e.dead);
 
@@ -1970,8 +2334,14 @@
     if (p && state !== 'over') addLight(p.x, p.y - 2, 92 * fl1, state === 'dying' ? Math.max(0, dieT) : 1);
     for (const tc of torches) addLight(tc.x, tc.y + 4, 48 * (1 + Math.sin(t * 11 + tc.seed) * 0.05), 0.95);
     for (const c of candles) addLight(c.x, c.y, 30, 0.85);
+    for (const c of shrooms) addLight(c.x, c.y, 26, 0.8);
+    for (const s of shots) addLight(s.x, s.y, 12, 0.8);
     for (const id of lavaTiles) addLight((id % ROOM_W) * TILE + 8, ((id / ROOM_W) | 0) * TILE + 8, 22, 0.55);
-    for (const e of enemies) if (e.type === 'fireimp') addLight(e.x, e.y, 18, 0.7);
+    for (const e of enemies) {
+      if (e.type === 'fireimp') addLight(e.x, e.y, 18, 0.7);
+      else if (e.type === 'eye' || e.type === 'wraith') addLight(e.x, e.y, 14, 0.6);
+      else if (e.type === 'golem') addLight(e.x, e.y, 16, 0.5);
+    }
     if (stairs) addLight(stairs.x, stairs.y, 30, 0.9);
     for (const s of pending) addLight(s.x, s.y, 12, 0.6);
     for (const gm of gems) addLight(gm.x, gm.y, 9, 0.7);
@@ -2066,7 +2436,7 @@
 
     // Spawn marks
     for (const s of pending) {
-      if (Math.floor(s.t * 10) % 2) drawSpr(SPR.mark, s.x, s.y, false, false, s.type === 'boss' ? 2 : 1);
+      if (Math.floor(s.t * 10) % 2) drawSpr(SPR.mark, s.x, s.y, false, false, isBoss(s) ? 2 : 1);
     }
 
     // Pickups
@@ -2096,9 +2466,29 @@
       else if (e.type === 'sewer') { const k = e.small ? 0.7 : 1; shadow(e.x, e.y + 3 * k, 8 * k); drawSpr(fast ? SPR.sewerB : SPR.sewerA, e.x, e.y, false, white, k); }
       else if (e.type === 'fireimp') { shadow(e.x, e.y + 6, 6); drawSpr(fast ? SPR.fireB : SPR.fireA, e.x, e.y - 2, false, white); }
       else if (e.type === 'knight') { shadow(e.x, e.y + 6, 10); drawSpr(SPR.knight, e.x, e.y - 1 - (e.dash > 0 ? 0 : fast), p.x < e.x, white || e.warn > 0); }
-      else if (e.type === 'boss') {
+      else if (e.type === 'archer') { shadow(e.x, e.y + 5, 8); drawSpr(SPR.archer, e.x, e.y - 1 - fast, p.x < e.x, white); }
+      else if (e.type === 'ghost') {
+        g.globalAlpha = 0.6 + 0.2 * Math.sin(t * 2 + e.phase);
+        drawSpr(fast ? SPR.ghostA : SPR.ghostB, e.x, e.y - 3 + Math.sin(t * 3 + e.phase), p.x < e.x, white);
+        g.globalAlpha = 1;
+      }
+      else if (e.type === 'wraith') { shadow(e.x, e.y + 7, 8); drawSpr(fast ? SPR.wraithA : SPR.wraithB, e.x, e.y - 3 + Math.sin(t * 3 + e.phase), p.x < e.x, white); }
+      else if (e.type === 'bloater') {
+        const k = 1 + (e.swell > 0 ? (0.7 - e.swell) / 0.7 * 0.4 : 0.04 * Math.sin(t * 3 + e.phase));
+        shadow(e.x, e.y + 5 * k, 10 * k); drawSpr(SPR.bloater, e.x, e.y, false, white, k);
+      }
+      else if (e.type === 'phantom') {
+        g.globalAlpha = Math.max(0, Math.min(1, phantomAlpha(e)));
+        shadow(e.x, e.y + 6, 7); drawSpr(SPR.phantom, e.x, e.y - 2 + Math.sin(t * 2.5 + e.phase), p.x < e.x, white);
+        g.globalAlpha = 1;
+      }
+      else if (e.type === 'leech') { shadow(e.x, e.y + 3, 10); drawSpr(e.hopT > 0.5 ? SPR.leechB : SPR.leechA, e.x, e.y, p.x > e.x, white); }
+      else if (e.type === 'golem') { shadow(e.x, e.y + 7, 12); drawSpr(SPR.golem, e.x, e.y - 1 - (e.warn > 0 ? 1 : fast), false, white); }
+      else if (e.type === 'eye') { shadow(e.x, e.y + 7, 6); drawSpr(SPR.eye, e.x, e.y - 3 + Math.sin(t * 3 + e.phase), false, white); }
+      else if (isBoss(e)) {
         shadow(e.x, e.y + 12, 22);
-        drawSpr(fast ? SPR.bossB : SPR.bossA, e.x, e.y, false, white, 2);
+        const BS = { boss: [SPR.bossA, SPR.bossB], lich: [SPR.lichA, SPR.lichB], brute: [SPR.bruteA, SPR.bruteB] }[e.type];
+        drawSpr(fast ? BS[1] : BS[0], e.x, e.y - (e.type === 'lich' ? 2 + Math.sin(t * 2) : 0), false, white, 2);
         const bw = 24, bx = snap(e.x - camX - bw / 2), by = snap(e.y - camY - 19);
         g.fillStyle = PAL.k; g.fillRect(bx - 1, by - 1, bw + 2, 4);
         g.fillStyle = '#ef4b5b'; g.fillRect(bx, by, Math.max(0, Math.round(bw * e.hp / e.maxHp)), 2);
@@ -2111,6 +2501,8 @@
     drawLavaGlow();
     drawTorchFlames();
     drawCandles();
+    drawShrooms();
+    drawShots();
     drawWeaponFx();
     drawParticles(true);
     drawAnimeFx();
@@ -2432,6 +2824,7 @@
     kill: limited('kill', 50, () => beep(180, 0.14, 'sawtooth', 0.035, -130)),
     gem: limited('gem', 45, () => beep(1100, 0.06, 'triangle', 0.035, 500)),
     hurt: () => beep(140, 0.25, 'sawtooth', 0.07, -80),
+    shoot: limited('shoot', 120, () => beep(420, 0.1, 'triangle', 0.02, -160)),
     heal: () => { beep(660, 0.08, 'triangle', 0.05); beep(990, 0.12, 'triangle', 0.05, 0, 0.08); },
     level: () => { [523, 659, 784, 1047].forEach((f, i) => beep(f, 0.12, 'square', 0.035, 0, i * 0.08)); },
     clear: () => { [784, 988, 1175].forEach((f, i) => beep(f, 0.1, 'triangle', 0.05, 0, i * 0.09)); },
@@ -2541,7 +2934,7 @@
     setWeapon: (id) => { id = weaponFix(id); if (WEAPONS[id]) { weaponId = id; store.set(KEY_WEAPON, id); } },
   };
 
-  window.__pd = { get state() { return state; }, get floor() { return floor; }, get player() { return p; }, get enemies() { return enemies; }, get stairs() { return stairs; }, get area() { return area.id; }, get room() { return { w: ROOM_W, h: ROOM_H }; }, get fx() { return { beams: beams.length, zaps: zaps.length, rockets: rockets.length, rangs: rangs.length, booms: booms.length, parts: parts.length, hits: hitfx.length }; } };
+  window.__pd = { get state() { return state; }, get floor() { return floor; }, get player() { return p; }, get enemies() { return enemies; }, get stairs() { return stairs; }, get area() { return area.id; }, get room() { return { w: ROOM_W, h: ROOM_H }; }, get shots() { return shots.length; }, get fx() { return { beams: beams.length, zaps: zaps.length, rockets: rockets.length, rangs: rangs.length, booms: booms.length, parts: parts.length, hits: hitfx.length }; } };
 
   // ---------- Service worker ----------
   if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
