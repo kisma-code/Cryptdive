@@ -240,30 +240,30 @@
       '............',
     ],
     rangs: [
-      '...Y........',
-      '..YYY.......',
-      '.YYYYY......',
-      'YYY.YYY.....',
-      'YY...YY.....',
-      'w.....w.....',
-      '........Y...',
-      '.......YYY..',
-      '......YYYYY.',
-      '.....YYY.YYY',
-      '.....YY...YY',
-      '.....w.....w',
+      '...n........',
+      '..nnn.......',
+      '.nnnnn......',
+      'nnn.nnn.....',
+      'nn...nn.....',
+      'm.....m.....',
+      '........n...',
+      '.......nnn..',
+      '......nnnnn.',
+      '.....nnn.nnn',
+      '.....nn...nn',
+      '.....m.....m',
     ],
     bigrang: [
       '............',
       '............',
-      '.....YY.....',
-      '....YYYY....',
-      '...YYYYYY...',
-      '..YYYYYYYY..',
-      '.YYYY..YYYY.',
-      'YYYY....YYYY',
-      'YYY......YYY',
-      'wY........Yw',
+      '.....nn.....',
+      '....nnnn....',
+      '...nnnnnn...',
+      '..nnnnnnnn..',
+      '.nnnn..nnnn.',
+      'nnnn....nnnn',
+      'nnn......nnn',
+      'mn........nm',
       '............',
       '............',
     ],
@@ -579,7 +579,7 @@
       ],
     },
     boomerang: {
-      name: 'Boomerang', icon: 'B', color: '#ffd23f', glow: '#fff4b8', tags: 'OUT · AND BACK',
+      name: 'Boomerang', icon: 'B', color: '#8f9bb3', glow: '#d0d8e6', tags: 'OUT · AND BACK',
       desc: 'Flies out and comes back. It hits on both ways.',
       base: { dmg: 5, cd: 1.0, count: 1, size: 5, dist: 1 }, minCd: 0.4,
       ups: [
@@ -2237,26 +2237,40 @@
       glow(z.pts[0].x, z.pts[0].y, 8, Z.glow, k);
     }
 
-    // Boomerangs: light trail and a spinning gold boomerang
-    const BW = WEAPONS.boomerang;
+    // Boomerangs: a dark smoke trail and a spinning black steel blade with a bone grip
     for (const r of rangs) {
       const k = p.w.size / 5;
+      g.save();
+      g.lineCap = 'round';
+      g.strokeStyle = '#07070c';
       for (let j = 0; j < r.trail.length - 1; j++) {
         const f = 1 - j / r.trail.length;
-        glowLine([r.trail[j], r.trail[j + 1]], 2.4 * k * f, BW.color, 0.5 * f);
+        g.globalAlpha = 0.4 * f; g.lineWidth = 3.4 * k * f;
+        g.beginPath(); g.moveTo(r.trail[j].x - camX, r.trail[j].y - camY); g.lineTo(r.trail[j + 1].x - camX, r.trail[j + 1].y - camY); g.stroke();
       }
-      glow(r.x, r.y, 7 * k, BW.glow, 0.6);
+      g.restore();
+      for (let j = 0; j < r.trail.length - 1; j++) {
+        const f = 1 - j / r.trail.length;
+        glowLine([r.trail[j], r.trail[j + 1]], 0.9 * k * f, '#8f9bb3', 0.3 * f);
+      }
+      glow(r.x, r.y, 6 * k, '#9aa8c0', 0.3);
       g.save();
       g.translate(r.x - camX, r.y - camY);
       g.rotate(r.spin);
-      g.scale(k, k);
-      g.lineCap = 'round'; g.lineJoin = 'round';
-      g.strokeStyle = PAL.k; g.lineWidth = 2.6;
-      g.beginPath(); g.moveTo(-3.5, -3); g.lineTo(0, 0); g.lineTo(-3.5, 3); g.stroke();
-      g.strokeStyle = BW.color; g.lineWidth = 1.6;
-      g.beginPath(); g.moveTo(-3.5, -3); g.lineTo(0, 0); g.lineTo(-3.5, 3); g.stroke();
-      g.strokeStyle = '#ffffff'; g.lineWidth = 0.5;
-      g.beginPath(); g.moveTo(-3, -2.4); g.lineTo(-0.3, 0); g.stroke();
+      g.scale(0.62 * k, 0.62 * k);
+      g.translate(0, 1.6); // spin around the middle of the blade
+      g.lineJoin = 'round';
+      const body = () => { g.beginPath(); g.moveTo(-6.8, 2.6); g.quadraticCurveTo(0, -7.2, 6.8, 2.6); g.lineTo(5.0, 3.2); g.quadraticCurveTo(0, -2.6, -5.0, 3.2); g.closePath(); };
+      body(); g.lineWidth = 1.6; g.strokeStyle = '#000000'; g.stroke();
+      body(); g.fillStyle = '#1e2028'; g.fill();
+      // Dark steel with a sharp cold edge
+      g.beginPath(); g.moveTo(-6.4, 2.2); g.quadraticCurveTo(0, -6.6, 6.4, 2.2); g.quadraticCurveTo(0, -5.0, -6.4, 2.2); g.fillStyle = '#4a5162'; g.fill();
+      g.strokeStyle = '#c9d4e3'; g.lineWidth = 0.4;
+      g.beginPath(); g.moveTo(-5.2, 0.6); g.quadraticCurveTo(0, -6.0, 5.2, 0.6); g.stroke();
+      // Old bone grip with a blood-red wrap
+      g.fillStyle = '#000000'; g.fillRect(-1.9, -3.4, 3.8, 3.0);
+      g.fillStyle = '#8a8270'; g.fillRect(-1.4, -2.9, 2.8, 2.0);
+      g.fillStyle = '#5a1420'; g.fillRect(-0.4, -2.9, 0.8, 2.0);
       g.restore();
     }
 
