@@ -51,6 +51,8 @@
     h: '#4d3a55', D: '#7a1c2c', m: '#a7adbd', n: '#596079',
     z: '#8a9a6b', Z: '#56663f', q: '#5a4636', Q: '#3a2c24', W: '#d8cfb4',
     u: '#5b7a3a', U: '#8fae5a',
+    // upgrade icon colors
+    H: '#ef4b5b', O: '#ff8a2a', Y: '#ffd23f',
   };
 
   function sprite(rows, swap) {
@@ -76,6 +78,228 @@
     wg.fillStyle = '#ffffff';
     wg.fillRect(0, 0, w, h);
     return { img: c, white: wc, w, h };
+  }
+
+  // ---------- Upgrade icons (12x12 pixel art for the level-up cards) ----------
+  const ICONS = {
+    damage: [
+      '.........www',
+      '........wwEw',
+      '.......wwEw.',
+      '......wwEw..',
+      '.....wwEw...',
+      '.y..wwEw....',
+      '.yyyEEw.....',
+      '..yyyw......',
+      '..qyyy......',
+      '.qqq.yy.....',
+      'qqq.........',
+      'qq..........',
+    ],
+    speed: [
+      '.qqqqqqqqqq.',
+      '..mmmmmmmm..',
+      '..myyyyyym..',
+      '...myyyym...',
+      '....myym....',
+      '.....yy.....',
+      '.....yy.....',
+      '....m..m....',
+      '...m.yy.m...',
+      '..myyyyyym..',
+      '..mmmmmmmm..',
+      '.qqqqqqqqqq.',
+    ],
+    move: [
+      '.....qqqq...',
+      '.....qooq...',
+      '.....qooq...',
+      'cc...qooq...',
+      '.....qooq...',
+      'ccc..qoooqq.',
+      '.....qoooooq',
+      'cc...qoooooq',
+      '.....qqqqqqq',
+      '.....WWWWWWW',
+      '............',
+      '............',
+    ],
+    hp: [
+      '............',
+      '.HHH....HHH.',
+      'HHwHH..HHHHH',
+      'HwHHHHHHHHHH',
+      'HHHHHHHHHHHH',
+      'HHHHHHHHHHHH',
+      '.HHHHHHHHHH.',
+      '..HHHHHHHH..',
+      '...HHHHHH...',
+      '....HHHH....',
+      '.....HH.....',
+      '............',
+    ],
+    regen: [
+      '....qqqq....',
+      '....qqqq....',
+      '.....EE.....',
+      '....EEEE....',
+      '...EEEEEE...',
+      '..gggggggg..',
+      '.gggggwgggg.',
+      '.ggggwwwggg.',
+      '.gggggwgggg.',
+      '.gggggggggg.',
+      '..gggggggg..',
+      '...gggggg...',
+    ],
+    magnet: [
+      '..........G.',
+      '.mmm..mmm.GG',
+      '.mmm..mmm...',
+      '.HHH..HHH...',
+      '.HHH..HHH...',
+      '.HHH..HHH...',
+      '.HHH..HHH...',
+      '.HHHHHHHH...',
+      '..HHHHHH....',
+      '...HHHH.....',
+      '............',
+      '............',
+    ],
+    range: [
+      '.....PP.....',
+      '...PPPPPP...',
+      '..P..PP..P..',
+      '.P...PP...P.',
+      '.P........P.',
+      'PPPP....PPPP',
+      'PPPP....PPPP',
+      '.P........P.',
+      '.P...PP...P.',
+      '..P..PP..P..',
+      '...PPPPPP...',
+      '.....PP.....',
+    ],
+    beams: [
+      '............',
+      'cccccccccccc',
+      'wwwwwwwwwwww',
+      'cccccccccccc',
+      '............',
+      'cccccccccccc',
+      'wwwwwwwwwwww',
+      'cccccccccccc',
+      '............',
+      'cccccccccccc',
+      'wwwwwwwwwwww',
+      'cccccccccccc',
+    ],
+    wide: [
+      '.....ww.....',
+      '....wwww....',
+      '............',
+      'cccccccccccc',
+      'wwwwwwwwwwww',
+      'wwwwwwwwwwww',
+      'wwwwwwwwwwww',
+      'cccccccccccc',
+      '............',
+      '....wwww....',
+      '.....ww.....',
+      '............',
+    ],
+    jumps: [
+      '............',
+      '......cccc..',
+      '.....cwwc...',
+      '....cwwc....',
+      '...cwwc.....',
+      '..cwwwwwwc..',
+      '.....cwwc...',
+      '....cwwc....',
+      '...cwwc.....',
+      '..cwc.......',
+      '..cc........',
+      '............',
+    ],
+    forks: [
+      '............',
+      '............',
+      '...cc....cc.',
+      '..cwc...cwc.',
+      '.cwc...cwc..',
+      'cwwwc.cwwwc.',
+      '..cwc...cwc.',
+      '.cwc...cwc..',
+      '.cc....cc...',
+      '............',
+      '............',
+      '............',
+    ],
+    rangs: [
+      '...Y........',
+      '..YYY.......',
+      '.YYYYY......',
+      'YYY.YYY.....',
+      'YY...YY.....',
+      'w.....w.....',
+      '........Y...',
+      '.......YYY..',
+      '......YYYYY.',
+      '.....YYY.YYY',
+      '.....YY...YY',
+      '.....w.....w',
+    ],
+    bigrang: [
+      '............',
+      '............',
+      '.....YY.....',
+      '....YYYY....',
+      '...YYYYYY...',
+      '..YYYYYYYY..',
+      '.YYYY..YYYY.',
+      'YYYY....YYYY',
+      'YYY......YYY',
+      'wY........Yw',
+      '............',
+      '............',
+    ],
+    rocket: [
+      '.........www',
+      '........wwHw',
+      '.......mmmHw',
+      '......mmmmm.',
+      '.....mmmmm..',
+      '..m.mmmmm...',
+      '..mmmmmm....',
+      '...mmmm.....',
+      '..Ommmm.....',
+      '.OyOm.m.....',
+      'OyOO........',
+      'OO..........',
+    ],
+    boom: [
+      '.....OO.....',
+      '..O..OO..O..',
+      '...OOyyOO...',
+      '...OyyyyO...',
+      '.OOyywwyyOO.',
+      'OOyywwwwyyOO',
+      'OOyywwwwyyOO',
+      '.OOyywwyyOO.',
+      '...OyyyyO...',
+      '...OOyyOO...',
+      '..O..OO..O..',
+      '.....OO.....',
+    ],
+  };
+  const iconCache = {};
+  function iconCanvas(id) {
+    if (!iconCache[id]) iconCache[id] = sprite(ICONS[id]).img;
+    const c = document.createElement('canvas');
+    c.width = 12; c.height = 12;
+    c.getContext('2d').drawImage(iconCache[id], 0, 0);
+    return c;
   }
 
   // Dark gothic pixel art (original designs).
@@ -240,14 +464,16 @@
   // ---------- Weapons ----------
   // Each weapon has its own base stats and 2 unique upgrades.
   // Damage and Attack Speed are in the general list (one name for all weapons).
+  // Upgrade value sign, for example 0.4 -> '+40%'.
+  const pct = (v) => '+' + Math.round(v * 100) + '%';
   const WEAPONS = {
     laser: {
       name: 'Laser Beam', icon: 'L', color: '#ff3d6e', glow: '#ff9fbf', tags: 'LINE · PIERCE',
       desc: 'A hot beam. It hits all monsters in a line.',
       base: { dmg: 6, cd: 1.15, width: 3, beams: 1, len: 1.5 }, minCd: 0.45,
       ups: [
-        { name: 'More Beams', desc: 'Fire 1 more beam.', ok: (w) => w.beams < 3, apply: (w) => { w.beams++; } },
-        { name: 'Wider Beam', desc: 'The beam is wider.', ok: (w) => w.width < 9, apply: (w) => { w.width += 2; } },
+        { name: 'More Beams', pic: 'beams', tag: '+1', desc: 'Fire 1 more beam.', ok: (w) => w.beams < 3, apply: (w) => { w.beams++; } },
+        { name: 'Wider Beam', pic: 'wide', tag: (w) => pct(2 / w.width), desc: 'The beam is wider.', ok: (w) => w.width < 9, apply: (w) => { w.width += 2; } },
       ],
     },
     lightning: {
@@ -255,8 +481,8 @@
       desc: 'Lightning jumps from monster to monster.',
       base: { dmg: 4, cd: 0.9, chains: 3, jump: 46, forks: 1 }, minCd: 0.35,
       ups: [
-        { name: 'More Jumps', desc: 'Lightning jumps 2 more times, farther.', ok: (w) => w.chains < 11, apply: (w) => { w.chains += 2; w.jump = Math.min(90, w.jump * 1.12); } },
-        { name: 'More Chains', desc: 'Start 1 more lightning chain.', ok: (w) => w.forks < 3, apply: (w) => { w.forks++; } },
+        { name: 'More Jumps', pic: 'jumps', tag: '+2', desc: 'Lightning jumps 2 more times, farther.', ok: (w) => w.chains < 11, apply: (w) => { w.chains += 2; w.jump = Math.min(90, w.jump * 1.12); } },
+        { name: 'More Chains', pic: 'forks', tag: '+1', desc: 'Start 1 more lightning chain.', ok: (w) => w.forks < 3, apply: (w) => { w.forks++; } },
       ],
     },
     boomerang: {
@@ -264,8 +490,8 @@
       desc: 'Flies out and comes back. It hits on both ways.',
       base: { dmg: 5, cd: 1.0, count: 1, size: 5, dist: 1 }, minCd: 0.4,
       ups: [
-        { name: 'More Boomerangs', desc: 'Throw 1 more boomerang.', ok: (w) => w.count < 4, apply: (w) => { w.count++; } },
-        { name: 'Bigger Boomerang', desc: 'Bigger, and flies farther.', ok: (w) => w.size < 11, apply: (w) => { w.size += 2; w.dist *= 1.15; } },
+        { name: 'More Boomerangs', pic: 'rangs', tag: '+1', desc: 'Throw 1 more boomerang.', ok: (w) => w.count < 4, apply: (w) => { w.count++; } },
+        { name: 'Bigger Boomerang', pic: 'bigrang', tag: (w) => pct(2 / w.size), desc: 'Bigger, and flies farther.', ok: (w) => w.size < 11, apply: (w) => { w.size += 2; w.dist *= 1.15; } },
       ],
     },
     rockets: {
@@ -273,8 +499,8 @@
       desc: 'Homing rockets. They explode in an area.',
       base: { dmg: 8, cd: 1.25, count: 1, radius: 22 }, minCd: 0.5,
       ups: [
-        { name: 'More Rockets', desc: 'Fire 1 more rocket.', ok: (w) => w.count < 4, apply: (w) => { w.count++; } },
-        { name: 'Bigger Explosion', desc: 'Explosions are larger.', ok: (w) => w.radius < 46, apply: (w) => { w.radius += 6; } },
+        { name: 'More Rockets', pic: 'rocket', tag: '+1', desc: 'Fire 1 more rocket.', ok: (w) => w.count < 4, apply: (w) => { w.count++; } },
+        { name: 'Bigger Explosion', pic: 'boom', tag: (w) => pct(6 / w.radius), desc: 'Explosions are larger.', ok: (w) => w.radius < 46, apply: (w) => { w.radius += 6; } },
       ],
     },
   };
@@ -282,17 +508,17 @@
 
   // ---------- Upgrades (for all weapons) ----------
   const UPGRADES = [
-    { name: 'Damage', icon: 'D', color: '#ef4b5b', desc: 'Damage +30%.', ok: () => true, apply: (p) => { p.w.dmg *= 1.3; } },
+    { name: 'Damage', icon: 'D', pic: 'damage', tag: '+30%', color: '#ef4b5b', desc: 'Damage +30%.', ok: () => true, apply: (p) => { p.w.dmg *= 1.3; } },
     {
-      name: 'Attack Speed', icon: 'A', color: '#ffcd75', desc: 'Attack 20% faster.',
+      name: 'Attack Speed', icon: 'A', pic: 'speed', tag: '+20%', color: '#ffcd75', desc: 'Attack 20% faster.',
       ok: (p) => p.w.cd > WEAPONS[p.weapon].minCd,
       apply: (p) => { p.w.cd *= 0.8; },
     },
-    { name: 'Move Speed', icon: 'S', color: '#73eff7', desc: 'Move 12% faster.', ok: (p) => p.speed < 105, apply: (p) => { p.speed *= 1.12; } },
-    { name: 'Max HP', icon: 'H', color: '#ff7a8a', desc: 'Max HP +4. Heal 4 HP.', ok: () => true, apply: (p) => { p.maxHp += 4; p.hp = Math.min(p.maxHp, p.hp + 4); } },
-    { name: 'Heal Over Time', icon: '+', color: '#38b764', desc: 'Heal 0.25 HP each second.', ok: (p) => p.regen < 1.5, apply: (p) => { p.regen += 0.25; } },
-    { name: 'Pickup Range', icon: 'P', color: '#a7f070', desc: 'Pick up XP from farther.', ok: (p) => p.magnet < 90, apply: (p) => { p.magnet *= 1.5; } },
-    { name: 'Attack Range', icon: 'R', color: '#a45fb8', desc: 'Attack range +20%.', ok: (p) => p.range < 170, apply: (p) => { p.range *= 1.2; } },
+    { name: 'Move Speed', icon: 'S', pic: 'move', tag: '+12%', color: '#73eff7', desc: 'Move 12% faster.', ok: (p) => p.speed < 105, apply: (p) => { p.speed *= 1.12; } },
+    { name: 'Max HP', icon: 'H', pic: 'hp', tag: '+4', color: '#ff7a8a', desc: 'Max HP +4. Heal 4 HP.', ok: () => true, apply: (p) => { p.maxHp += 4; p.hp = Math.min(p.maxHp, p.hp + 4); } },
+    { name: 'Heal Over Time', icon: '+', pic: 'regen', tag: '+0.25/s', color: '#38b764', desc: 'Heal 0.25 HP each second.', ok: (p) => p.regen < 1.5, apply: (p) => { p.regen += 0.25; } },
+    { name: 'Pickup Range', icon: 'P', pic: 'magnet', tag: '+50%', color: '#a7f070', desc: 'Pick up XP from farther.', ok: (p) => p.magnet < 90, apply: (p) => { p.magnet *= 1.5; } },
+    { name: 'Attack Range', icon: 'R', pic: 'range', tag: '+20%', color: '#a45fb8', desc: 'Attack range +20%.', ok: (p) => p.range < 170, apply: (p) => { p.range *= 1.2; } },
   ];
 
   // ---------- State ----------
@@ -1996,7 +2222,8 @@
     const shuffle = (arr) => { for (let i = arr.length - 1; i > 0; i--) { const j = randi(i + 1); [arr[i], arr[j]] = [arr[j], arr[i]]; } return arr; };
     const W = WEAPONS[p.weapon];
     const wPool = shuffle(W.ups.filter((u) => u.ok(p.w)).map((u) => ({
-      name: u.name, desc: u.desc, icon: W.icon, color: W.color, weapon: true, apply: () => u.apply(p.w),
+      name: u.name, desc: u.desc, pic: u.pic, tag: typeof u.tag === 'function' ? u.tag(p.w) : u.tag,
+      color: W.color, weapon: true, apply: () => u.apply(p.w),
     })));
     const gPool = UPGRADES.filter((u) => u.ok(p)).map((u) => ({ ...u, apply: () => u.apply(p) }));
     // Always give at least 1 weapon upgrade (when one is available).
@@ -2012,7 +2239,10 @@
       if (u.weapon) { btn.style.setProperty('--wc', W.color); btn.style.setProperty('--wg', W.glow); }
       btn.disabled = true;
       const ico = document.createElement('span');
-      ico.className = 'ico'; ico.style.background = u.color; ico.textContent = u.icon;
+      // Pixel icon with a value sign (for example a rocket and "+1").
+      ico.className = 'ico pic'; ico.style.setProperty('--ic', u.color);
+      const sign = document.createElement('em'); sign.textContent = u.tag;
+      ico.append(iconCanvas(u.pic), sign);
       const txt = document.createElement('span');
       const name = document.createElement('b'); name.textContent = u.name;
       const desc = document.createElement('small'); desc.textContent = u.desc;
@@ -2028,8 +2258,9 @@
     }
     $('lvNum').textContent = p.level - pendingLevels + 1;
     show('scrLevel');
-    // Short delay, so a finger on the joystick does not select a card by accident.
-    setTimeout(() => cards.querySelectorAll('button').forEach((b) => { b.disabled = false; }), 450);
+    // The cards slide in one by one (style.css). The short delay also stops
+    // a finger on the joystick from selecting a card by accident.
+    setTimeout(() => cards.querySelectorAll('button').forEach((b) => { b.disabled = false; }), 500);
   }
 
   function pauseGame() {
