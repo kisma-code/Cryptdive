@@ -104,6 +104,7 @@ The install and offline parts need HTTPS (or `localhost`). GitHub Pages gives HT
 | File | Use |
 | --- | --- |
 | `index.html` | Page and screens |
+| `privacy.html` | Privacy policy (linked from the title and login screens) |
 | `style.css` | Look of the HUD, joystick and screens |
 | `game.js` | All game code |
 | `manifest.webmanifest` | PWA data (name, icons, portrait mode) |
