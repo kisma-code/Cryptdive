@@ -401,7 +401,7 @@ html, body {
 @media (prefers-reduced-motion: reduce) {
   #cards .card { animation: none; }
 }
-#cards .ico.pic {
+#cards .ico.pic, #clsUps .ico.pic {
   position: relative;
   width: 48px;
   height: 48px;
@@ -409,8 +409,8 @@ html, body {
   box-shadow: inset 0 0 0 2px var(--ic), 0 0 0 2px var(--dark);
   animation: none;
 }
-#cards .ico.pic canvas { width: 36px; height: 36px; image-rendering: pixelated; }
-#cards .ico.pic em {
+#cards .ico.pic canvas, #clsUps .ico.pic canvas { width: 36px; height: 36px; image-rendering: pixelated; }
+#cards .ico.pic em, #clsUps .ico.pic em {
   position: absolute;
   right: -8px;
   bottom: -7px;
@@ -424,3 +424,28 @@ html, body {
   background: var(--ic);
   box-shadow: 0 0 0 2px var(--dark);
 }
+
+/* ---------- Classes and Souls ---------- */
+.card.weapon em.cls-line { display: inline-block; margin-top: 3px; font-style: normal; font-size: 10px; letter-spacing: 1px; color: var(--gold); }
+.cls-souls { color: var(--gold) !important; font-size: 18px; letter-spacing: 2px; margin-top: -6px; }
+.cls-souls b { color: var(--ink); }
+#clsUps { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 360px; }
+.card.cls-up { padding: 12px 10px 12px 14px; }
+.card.cls-up > span:nth-child(2) { flex: 1; }
+.up-btn {
+  flex: none;
+  font: inherit;
+  font-weight: 800;
+  font-size: 13px;
+  letter-spacing: 1px;
+  padding: 10px 8px;
+  min-width: 72px;
+  color: var(--dark);
+  background: var(--gold);
+  border: none;
+  box-shadow: inset -3px -3px 0 rgba(0,0,0,.25), 0 0 0 2px var(--dark);
+}
+.up-btn:active { transform: translateY(2px); }
+.up-btn:disabled { background: #566c86; color: #262b44; }
+.cls-help { font-size: 10px !important; line-height: 1.6; }
+.ov-souls { font-size: 14px !important; color: var(--gold) !important; letter-spacing: 1px; }

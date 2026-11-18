@@ -16,6 +16,7 @@
   const KEY_BEST = 'pixelDepths.bestFloor';
   const KEY_MUTE = 'pixelDepths.mute';
   const KEY_WEAPON = 'pixelDepths.weapon';
+  const KEY_CLASSES = 'pixelDepths.classes';
 
   const store = {
     get(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : v; } catch (e) { return d; } },
@@ -598,6 +599,32 @@
   };
   const WEAPON_ORDER = ['laser', 'lightning', 'boomerang', 'rockets'];
 
+  // ---------- Classes (permanent upgrades) ----------
+  // Each class (= weapon) has its own Souls and 3 upgrades with no max level.
+  // Souls come at the end of a run: 1 for each floor reached, +5 for each boss killed.
+  const CLASS_UPS = [
+    { id: 'atk', name: 'ATTACK', pic: 'damage', color: '#ef4b5b', tag: (l) => '+' + l * 10 + '%' },
+    { id: 'spd', name: 'ATTACK SPEED', pic: 'speed', color: '#ffcd75', tag: (l) => '+' + l * 5 + '%' },
+    { id: 'hp', name: 'MAX HP', pic: 'hp', color: '#ff7a8a', tag: (l) => '+' + l * 2 },
+  ];
+  const classCost = (lvl) => 10 * (lvl + 1);
+  function cleanClass(c) {
+    const n = (v) => Math.max(0, Math.min(1e6, Math.floor(+v || 0)));
+    c = c || {};
+    return { souls: n(c.souls), earned: n(c.earned), atk: n(c.atk), spd: n(c.spd), hp: n(c.hp), best: n(c.best) };
+  }
+  function loadClasses(raw) {
+    const out = {};
+    for (const id of WEAPON_ORDER) out[id] = cleanClass(raw && raw[id]);
+    return out;
+  }
+  let classes = (() => { try { return loadClasses(JSON.parse(store.get(KEY_CLASSES, '{}'))); } catch (e) { return loadClasses(null); } })();
+  function saveClasses(cloudToo) {
+    store.set(KEY_CLASSES, JSON.stringify(classes));
+    const cloud = window.PD_CLOUD;
+    if (cloudToo && cloud && cloud.saveClasses) cloud.saveClasses(classes);
+  }
+
   // ---------- Upgrades (for all weapons) ----------
   const UPGRADES = [
     { name: 'Damage', icon: 'D', pic: 'damage', tag: '+30%', color: '#ef4b5b', desc: 'Damage +30%.', ok: () => true, apply: (p) => { p.w.dmg *= 1.3; } },
@@ -617,6 +644,8 @@
   let state = 'title'; // title | play | levelup | paused | dying | over
   let t = 0;
   let floor = 1, kills = 0, pendingLevels = 0, dieT = 0;
+  // Class best floor at the start of the run (floors below it are fast floors), boss kills, souls paid.
+  let runBest = 0, bossKills = 0, soulsGiven = true;
   let best = parseInt(store.get(KEY_BEST, '0'), 10) || 0;
   let map, bg, bgCtx, theme, torches = [];
   let shots = []; // monster bullets
@@ -632,12 +661,18 @@
   const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
 
   function makePlayer() {
+    // Class upgrades: ATTACK +10%, ATTACK SPEED +5%, MAX HP +2 for each level.
+    const c = classes[weaponId], W = WEAPONS[weaponId];
+    const w = Object.assign({}, W.base);
+    w.dmg *= 1 + 0.1 * c.atk;
+    w.cd = Math.max(W.minCd, w.cd / (1 + 0.05 * c.spd));
+    const hp = 10 + 2 * c.hp;
     return {
       x: RW / 2, y: RH / 2, vx: 0, vy: 0, r: 4, face: 1, moving: false, anim: 0,
-      hp: 10, maxHp: 10, speed: 60, cdT: 0.3, charge: 0,
+      hp, maxHp: hp, speed: 60, cdT: 0.3, charge: 0,
       magnet: 24, regen: 0, range: 100,
       xp: 0, xpNext: 5, level: 1, inv: 0,
-      weapon: weaponId, w: Object.assign({}, WEAPONS[weaponId].base),
+      weapon: weaponId, w,
     };
   }
   function clearLists() {
@@ -1280,11 +1315,15 @@
   // ---------- Floors ----------
   function startFloor() {
     const boss = floor % 5 === 0;
-    const total = boss ? 4 + floor : Math.min(6 + floor * 3, 70);
+    const normal = Math.min(6 + floor * 3, 70);
+    // Fast floor: below the class best (not a boss floor), only 1 elite monster with all the EXP.
+    const fast = !boss && floor < runBest;
+    const total = boss ? 4 + floor : fast ? 1 : normal;
     fl = {
       toSpawn: total,
+      fast, fastXp: Math.round(normal * 1.6),
       rate: Math.max(0.25, 0.85 - floor * 0.04),
-      spawnT: 1.2,
+      spawnT: fast ? 0.6 : 1.2,
       maxAlive: Math.min(10 + floor * 2, 40),
       cleared: false,
     };
@@ -1296,6 +1335,7 @@
     let text = 'FLOOR ' + floor;
     if ((floor - 1) % 5 === 0) text += '\n' + area.name; // a new area starts
     if (boss) text += '\n' + BOSS_NAMES[bt] + '!';
+    if (fast) text += '\nFAST FLOOR';
     showBanner(text);
   }
 
@@ -1339,6 +1379,8 @@
 
   function nextFloor() {
     floor++;
+    const cb = classes[p.weapon];
+    if (floor > cb.best) { cb.best = floor; saveClasses(false); }
     if (floor > best) {
       best = floor; store.set(KEY_BEST, best);
       if (window.PD_CLOUD) window.PD_CLOUD.saveBest(best);
@@ -1356,6 +1398,7 @@
 
   function newGame() {
     floor = 1; kills = 0; pendingLevels = 0;
+    runBest = classes[weaponId].best; bossKills = 0; soulsGiven = false;
     p = makePlayer();
     camSnap = true;
     clearLists();
@@ -1655,7 +1698,13 @@
     stampBlood(e.x, e.y, big);
     if (e.type === 'bloater') { spark(e.x, e.y, '#d77fae', 12, 70, 0.45, 2); smoke(e.x, e.y, 5, 3, 8); }
     sfx.kill();
-    if (big) {
+    if (big) bossKills++;
+    if (e.elite) {
+      // The elite drops all the EXP of the floor.
+      const n = Math.min(8, Math.ceil(e.xp / 5));
+      for (let i = 0; i < n; i++) gems.push({ x: e.x, y: e.y, vx: rand(-60, 60), vy: rand(-60, 60), v: Math.ceil(e.xp / n) });
+      hearts.push({ x: e.x, y: e.y });
+    } else if (big) {
       for (let i = 0; i < 6; i++) gems.push({ x: e.x, y: e.y, vx: rand(-60, 60), vy: rand(-60, 60), v: 3 });
       hearts.push({ x: e.x, y: e.y });
       shake = 6;
@@ -1883,7 +1932,7 @@
     fl.spawnT -= dt;
     if (fl.toSpawn > 0 && fl.spawnT <= 0 && enemies.length + pending.length < fl.maxAlive) {
       const s = freeSpot(64);
-      pending.push({ type: pickType(), x: s.x, y: s.y, t: 0.7 });
+      pending.push({ type: pickType(), x: s.x, y: s.y, t: 0.7, elite: fl.fast });
       fl.toSpawn--;
       fl.spawnT = fl.rate;
     }
@@ -1892,6 +1941,7 @@
       if (s.t <= 0) {
         const en = makeEnemy(s.type, s.x, s.y);
         if (s.small) { en.small = true; en.r = 3; en.hp = en.maxHp = en.maxHp * 0.35; en.speed *= 1.5; en.xp = 1; }
+        if (s.elite) { en.elite = true; en.hp = en.maxHp = en.maxHp * 3; en.xp = fl.fastXp; }
         enemies.push(en); s.done = true;
       }
     }
@@ -2341,6 +2391,7 @@
       if (e.type === 'fireimp') addLight(e.x, e.y, 18, 0.7);
       else if (e.type === 'eye' || e.type === 'wraith') addLight(e.x, e.y, 14, 0.6);
       else if (e.type === 'golem') addLight(e.x, e.y, 16, 0.5);
+      if (e.elite) addLight(e.x, e.y, 26, 0.9);
     }
     if (stairs) addLight(stairs.x, stairs.y, 30, 0.9);
     for (const s of pending) addLight(s.x, s.y, 12, 0.6);
@@ -2459,6 +2510,7 @@
         continue;
       }
       const white = e.flash > 0;
+      if (e.elite) glow(e.x, e.y, 16, '#ffcd75', 0.4);
       const fast = Math.floor(e.anim * (e.type === 'bat' ? 10 : 4)) % 2;
       if (e.type === 'slime') { shadow(e.x, e.y + 3, 8); drawSpr(fast ? SPR.slimeB : SPR.slimeA, e.x, e.y, false, white); }
       else if (e.type === 'bat') { shadow(e.x, e.y + 6, 6); drawSpr(fast ? SPR.batB : SPR.batA, e.x, e.y - 2, false, white); }
@@ -2492,6 +2544,11 @@
         const bw = 24, bx = snap(e.x - camX - bw / 2), by = snap(e.y - camY - 19);
         g.fillStyle = PAL.k; g.fillRect(bx - 1, by - 1, bw + 2, 4);
         g.fillStyle = '#ef4b5b'; g.fillRect(bx, by, Math.max(0, Math.round(bw * e.hp / e.maxHp)), 2);
+      }
+      if (e.elite) {
+        const bw = 16, bx = snap(e.x - camX - bw / 2), by = snap(e.y - camY - 13);
+        g.fillStyle = PAL.k; g.fillRect(bx - 1, by - 1, bw + 2, 4);
+        g.fillStyle = '#ffcd75'; g.fillRect(bx, by, Math.max(0, Math.round(bw * e.hp / e.maxHp)), 2);
       }
     }
 
@@ -2585,21 +2642,71 @@
       const name = document.createElement('b'); name.textContent = W.name;
       const desc = document.createElement('small'); desc.textContent = W.desc;
       const tags = document.createElement('i'); tags.textContent = W.tags;
-      txt.append(name, document.createElement('br'), desc, document.createElement('br'), tags);
+      const c = classes[id];
+      const prog = document.createElement('em'); prog.className = 'cls-line';
+      prog.textContent = 'SOULS ' + c.souls + ' · LV ' + (c.atk + c.spd + c.hp) + ' · BEST F' + c.best;
+      txt.append(name, document.createElement('br'), desc, document.createElement('br'), tags, document.createElement('br'), prog);
       btn.append(ico, txt);
-      btn.addEventListener('click', () => {
-        weaponId = id;
-        store.set(KEY_WEAPON, id);
-        startGame();
-      });
+      btn.addEventListener('click', () => openClass(id));
       box.appendChild(btn);
     }
     show('scrWeapon');
   }
 
+  // Class screen: spend Souls on upgrades, then PLAY.
+  let clsId = null;
+  function openClass(id) {
+    clsId = id;
+    const W = WEAPONS[id], c = classes[id];
+    $('clsName').textContent = W.name.toUpperCase();
+    $('clsName').style.color = W.color;
+    $('clsSouls').textContent = c.souls;
+    $('clsBest').textContent = c.best;
+    const box = $('clsUps');
+    box.innerHTML = '';
+    for (const u of CLASS_UPS) {
+      const lvl = c[u.id], cost = classCost(lvl);
+      const row = document.createElement('div');
+      row.className = 'card cls-up';
+      const ico = document.createElement('span');
+      ico.className = 'ico pic'; ico.style.setProperty('--ic', u.color);
+      const sign = document.createElement('em'); sign.textContent = u.tag(lvl);
+      ico.append(iconCanvas(u.pic), sign);
+      const txt = document.createElement('span');
+      const name = document.createElement('b'); name.textContent = u.name;
+      const info = document.createElement('small'); info.textContent = 'LV ' + lvl + ' → ' + u.tag(lvl + 1);
+      txt.append(name, document.createElement('br'), info);
+      const up = document.createElement('button');
+      up.className = 'up-btn';
+      up.textContent = 'UP ' + cost;
+      up.disabled = c.souls < cost;
+      up.addEventListener('click', () => {
+        if (c.souls < cost) return;
+        c.souls -= cost; c[u.id]++;
+        saveClasses(true);
+        sfx.gem();
+        openClass(id);
+      });
+      row.append(ico, txt, up);
+      box.appendChild(row);
+    }
+    hide('scrWeapon');
+    show('scrClass');
+  }
+
+  // Give the Souls of this run to the class (once per run).
+  function giveSouls() {
+    if (soulsGiven || !p) return 0;
+    soulsGiven = true;
+    const c = classes[p.weapon], n = floor + bossKills * 5;
+    c.souls += n; c.earned += n; c.best = Math.max(c.best, floor);
+    saveClasses(false);
+    return n;
+  }
+
   function startGame() {
     unlockAudio();
-    hide('scrWeapon');
+    hide('scrWeapon'); hide('scrClass');
     newGame();
     if (best < 1) { best = 1; store.set(KEY_BEST, best); }
     hide('scrTitle'); hide('scrOver'); hide('scrPause'); hide('scrLevel');
@@ -2675,6 +2782,8 @@
     $('ovLevel').textContent = p.level;
     $('ovKills').textContent = kills;
     $('ovWeapon').textContent = WEAPONS[p.weapon].name;
+    const souls = giveSouls();
+    $('ovSouls').textContent = '+' + souls + ' SOULS FOR ' + WEAPONS[p.weapon].name.toUpperCase();
     $('newBest').classList.toggle('hidden', !isNew);
     hide('hud'); hide('stick');
     show('scrOver');
@@ -2687,7 +2796,7 @@
     if (el) el.textContent = '';
     if (!cloud || !cloud.user) return;
     if (el) el.textContent = 'SAVING...';
-    cloud.saveRun({ floor, level: p.level, kills, weapon: p.weapon }).then((r) => {
+    cloud.saveRun({ floor, level: p.level, kills, weapon: p.weapon, classes }).then((r) => {
       if (el) el.textContent = r === 'ok' ? 'SAVED TO YOUR ACCOUNT' : r === 'fail' ? 'SAVE FAILED. CHECK INTERNET.' : '';
     });
   }
@@ -2841,10 +2950,17 @@
   $('btnStart').addEventListener('click', openWeaponSelect);
   $('btnAgain').addEventListener('click', openWeaponSelect);
   $('btnWeaponBack').addEventListener('click', () => { hide('scrWeapon'); toTitle(); });
+  $('btnClassPlay').addEventListener('click', () => {
+    weaponId = clsId;
+    store.set(KEY_WEAPON, clsId);
+    startGame();
+  });
+  $('btnClassBack').addEventListener('click', () => { hide('scrClass'); openWeaponSelect(); });
   $('btnPause').addEventListener('click', pauseGame);
   $('btnResume').addEventListener('click', resumeGame);
   $('btnQuit').addEventListener('click', () => {
     if (floor > best) { best = floor; store.set(KEY_BEST, best); }
+    giveSouls();
     cloudSaveRun(null);
     toTitle();
   });
@@ -2932,6 +3048,19 @@
     getBest: () => best,
     setBest: (n) => { best = n; store.set(KEY_BEST, n); $('titleBest').textContent = n; },
     setWeapon: (id) => { id = weaponFix(id); if (WEAPONS[id]) { weaponId = id; store.set(KEY_WEAPON, id); } },
+    getClasses: () => classes,
+    // Merge the cloud classes with the device: for each class, keep the one with more Souls earned.
+    // Returns true when the device has newer data (then auth.js saves it to the cloud).
+    mergeClasses: (remote) => {
+      const r = loadClasses(remote);
+      let localNewer = false;
+      for (const id of WEAPON_ORDER) {
+        if (r[id].earned > classes[id].earned) classes[id] = r[id];
+        else if (JSON.stringify(r[id]) !== JSON.stringify(classes[id])) localNewer = true;
+      }
+      saveClasses(false);
+      return localNewer;
+    },
   };
 
   window.__pd = { get state() { return state; }, get floor() { return floor; }, get player() { return p; }, get enemies() { return enemies; }, get stairs() { return stairs; }, get area() { return area.id; }, get room() { return { w: ROOM_W, h: ROOM_H }; }, get shots() { return shots.length; }, get fx() { return { beams: beams.length, zaps: zaps.length, rockets: rockets.length, rangs: rangs.length, booms: booms.length, parts: parts.length, hits: hitfx.length }; } };
