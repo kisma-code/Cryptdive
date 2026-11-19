@@ -566,7 +566,7 @@
       desc: 'A hot beam. It hits all monsters in a line.',
       base: { dmg: 6, cd: 1.15, width: 3, beams: 1, len: 1.5 }, minCd: 0.45,
       ups: [
-        { name: 'More Beams', pic: 'beams', tag: '+1', desc: 'Fire 1 more beam.', ok: (w) => w.beams < 3, apply: (w) => { w.beams++; } },
+        { name: 'More Beams', pic: 'beams', tag: '+1', desc: 'Fire 1 more beam.', ok: (w) => w.beams < 6, apply: (w) => { w.beams++; } },
         { name: 'Wider Beam', pic: 'wide', tag: (w) => pct(2 / w.width), desc: 'The beam is wider.', ok: (w) => w.width < 9, apply: (w) => { w.width += 2; } },
       ],
     },
@@ -1476,7 +1476,9 @@
     const w = p.w, ox = p.x, oy = p.y - 2;
     const base = Math.atan2(tg.y - oy, tg.x - ox);
     for (let i = 0; i < w.beams; i++) {
-      const a = base + (i - (w.beams - 1) / 2) * 0.32;
+      // Beam 1 aims at the target; the others are spaced evenly around the hero
+      // (2 = opposite, 3 = 120 degrees apart, 4 = a cross, up to 6 = a star).
+      const a = base + (i * Math.PI * 2) / w.beams;
       const dx = Math.cos(a), dy = Math.sin(a);
       const len = rayLen(ox, oy, dx, dy, p.range * w.len);
       beams.push({ x: ox, y: oy, dx, dy, len, width: w.width, life: 0.4, max: 0.4, ticks: 2, tickT: 0 });
