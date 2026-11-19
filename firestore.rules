@@ -1,6 +1,6 @@
 rules_version = '2';
 
-// Pixel Depths: cloud save + leaderboard.
+// Cryptdive: cloud save + leaderboard.
 // Paste these rules in Firebase console > Firestore Database > Rules, then push Publish.
 service cloud.firestore {
   match /databases/{database}/documents {

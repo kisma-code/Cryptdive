@@ -1,6 +1,6 @@
 'use strict';
 /*
- * Pixel Depths - a small pixel art action RPG.
+ * Cryptdive - a small pixel art action RPG.
  * Move with the joystick (phone) or WASD / arrow keys (computer).
  * The hero attacks automatically.
  * Kill all monsters on a floor, then take the stairs down.
@@ -13,6 +13,7 @@
   // Room size in tiles. It changes for each floor (small, medium, large).
   let ROOM_W = 15, ROOM_H = 23;
   let RW = ROOM_W * TILE, RH = ROOM_H * TILE;
+  // (The keys keep the old game name "Pixel Depths", so saved progress is kept.)
   const KEY_BEST = 'pixelDepths.bestFloor';
   const KEY_MUTE = 'pixelDepths.mute';
   const KEY_WEAPON = 'pixelDepths.weapon';
