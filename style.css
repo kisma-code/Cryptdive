@@ -449,3 +449,5 @@ html, body {
 .up-btn:disabled { background: #566c86; color: #262b44; }
 .cls-help { font-size: 10px !important; line-height: 1.6; }
 .ov-souls { font-size: 14px !important; color: var(--gold) !important; letter-spacing: 1px; }
+.privacy-link { color: var(--dim); font-size: 11px; letter-spacing: 1px; text-decoration: underline; }
+.title-privacy { margin-top: -4px; }
