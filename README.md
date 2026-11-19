@@ -1,4 +1,4 @@
-# Pixel Depths
+# Cryptdive
 
 A small pixel art action RPG for phones. It is a PWA (you can install it and play offline).
 
@@ -68,7 +68,7 @@ account (cloud save) and show on the leaderboard (first name + deepest floor;
 no email). Until you finish these steps, the game runs in guest mode.
 
 1. Go to https://console.firebase.google.com and push **Create a project**.
-   Give it a name (for example `pixel-depths`). You can turn off Google Analytics.
+   Give it a name (for example `cryptdive`). You can turn off Google Analytics.
 2. **Build > Authentication > Get started > Sign-in method > Google**:
    turn on **Enable**, select a support email, push **Save**.
 3. **Authentication > Settings > Authorized domains > Add domain**:
@@ -78,7 +78,7 @@ no email). Until you finish these steps, the game runs in guest mode.
 5. **Firestore Database > Rules**: replace the text with the contents of
    `firestore.rules` from this repository, then push **Publish**.
 6. **Project settings** (gear icon) **> Your apps > Web (`</>`)**: register an
-   app (for example `Pixel Depths`). Copy `apiKey`, `authDomain`, `projectId`
+   app (for example `Cryptdive`). Copy `apiKey`, `authDomain`, `projectId`
    and `appId` from the config into `firebase-config.js`.
 7. In `sw.js`, change `VERSION` (for example `v13` to `v14`), so phones get the
    new config. Push the change.
