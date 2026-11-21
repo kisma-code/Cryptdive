@@ -27,7 +27,8 @@
 
   window.PD_CG = {
     storage,
-    adsReady: ready,
+    // Ads are not allowed in Basic Launch. The build turns them on with --ads (Full Launch).
+    adsReady: ready && window.PD_CG_ADS === true,
     gameplayStart: () => safe(() => sdk.game.gameplayStart()),
     gameplayStop: () => safe(() => sdk.game.gameplayStop()),
     // done(true) only when the player watched the whole ad.

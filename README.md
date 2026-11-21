@@ -119,7 +119,8 @@ The install and offline parts need HTTPS (or `localhost`). GitHub Pages gives HT
 Make the upload zip (from the repo root):
 
 ```sh
-python3 tools/build-crazygames.py   # writes 4 files to dist/crazygames/
+python3 tools/build-crazygames.py         # Basic Launch (no ads): 4 files in dist/crazygames/
+python3 tools/build-crazygames.py --ads   # Full Launch: with the rewarded ad
 ```
 
 The CrazyGames version has no Google login and no leaderboard. It saves with the
