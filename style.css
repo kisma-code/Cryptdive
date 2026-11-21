@@ -451,3 +451,7 @@ html, body {
 .ov-souls { font-size: 14px !important; color: var(--gold) !important; letter-spacing: 1px; }
 .privacy-link { color: var(--dim); font-size: 11px; letter-spacing: 1px; text-decoration: underline; }
 .title-privacy { margin-top: -4px; }
+.btn.ad { background: var(--gold); font-size: 14px; }
+.btn.ad:disabled { opacity: .7; }
+/* CrazyGames build: no privacy link (CrazyGames has its own). */
+.platform-crazygames .title-privacy { display: none; }
