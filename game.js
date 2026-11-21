@@ -2735,10 +2735,10 @@
   }
 
   // ----- CrazyGames: rewarded ad on the game-over screen (double Souls, 1 time per run) -----
-  let lastSouls = 0;
+  let lastSouls = 0, adFailed = false;
   function setupAdButton() {
     const btn = $('btnAdSouls');
-    btn.classList.toggle('hidden', !CG || !CG.adsReady || lastSouls <= 0);
+    btn.classList.toggle('hidden', !CG || !CG.adsReady || adFailed || lastSouls <= 0);
     btn.disabled = false;
     btn.textContent = 'WATCH AD: DOUBLE SOULS';
   }
@@ -2751,7 +2751,8 @@
       start: () => setAdAudio(true),
       done: (ok) => {
         setAdAudio(false);
-        if (!ok) { btn.disabled = false; btn.textContent = 'NO AD NOW. TRY AGAIN LATER.'; return; }
+        // No ad: hide the button (and do not show it again in this session).
+        if (!ok) { adFailed = true; btn.classList.add('hidden'); return; }
         const c = classes[id];
         c.souls += n; c.earned += n;
         saveClasses(false);
