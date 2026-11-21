@@ -119,9 +119,10 @@ The install and offline parts need HTTPS (or `localhost`). GitHub Pages gives HT
 Make the upload zip (from the repo root):
 
 ```sh
-python3 tools/build-crazygames.py   # writes dist/cryptdive-crazygames.zip
+python3 tools/build-crazygames.py   # writes 4 files to dist/crazygames/
 ```
 
 The CrazyGames version has no Google login and no leaderboard. It saves with the
 CrazyGames account (Data module: turn it on in the upload form) and has 1 rewarded
 ad: "WATCH AD: DOUBLE SOULS" on the game-over screen.
+CrazyGames does not accept a zip: drag and drop the 4 files into the upload zone.
