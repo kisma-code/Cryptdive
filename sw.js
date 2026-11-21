@@ -2,7 +2,7 @@
 // Online: always load the newest files from the network (then save a copy).
 // Offline: use the saved copy.
 // Change VERSION when you change a game file.
-const VERSION = 'cryptdive-v33';
+const VERSION = 'cryptdive-v34';
 const FILES = [
   './',
   './index.html',
