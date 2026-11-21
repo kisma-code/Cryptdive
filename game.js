@@ -19,9 +19,14 @@
   const KEY_WEAPON = 'pixelDepths.weapon';
   const KEY_CLASSES = 'pixelDepths.classes';
 
+  // Platform: 'web' (GitHub Pages, Google login) or 'crazygames' (set by crazygames.js
+  // in the CrazyGames build; there the CrazyGames SDK saves the progress).
+  const PLATFORM = window.PD_PLATFORM || 'web';
+  const CG = PLATFORM === 'crazygames' ? window.PD_CG : null;
+  const backend = (CG && CG.storage) || window.localStorage;
   const store = {
-    get(k, d) { try { const v = localStorage.getItem(k); return v === null ? d : v; } catch (e) { return d; } },
-    set(k, v) { try { localStorage.setItem(k, String(v)); } catch (e) { /* storage blocked */ } },
+    get(k, d) { try { const v = backend.getItem(k); return v === null || v === undefined ? d : v; } catch (e) { return d; } },
+    set(k, v) { try { backend.setItem(k, String(v)); } catch (e) { /* storage blocked */ } },
   };
 
   const $ = (id) => document.getElementById(id);
@@ -2725,8 +2730,38 @@
     const c = classes[p.weapon], n = floorSouls(floor - 1) + bossKills * 5;
     c.souls += n; c.earned += n; c.best = Math.max(c.best, floor);
     saveClasses(false);
+    lastSouls = n;
     return n;
   }
+
+  // ----- CrazyGames: rewarded ad on the game-over screen (double Souls, 1 time per run) -----
+  let lastSouls = 0;
+  function setupAdButton() {
+    const btn = $('btnAdSouls');
+    btn.classList.toggle('hidden', !CG || !CG.adsReady || lastSouls <= 0);
+    btn.disabled = false;
+    btn.textContent = 'WATCH AD: DOUBLE SOULS';
+  }
+  $('btnAdSouls').addEventListener('click', () => {
+    if (!CG || lastSouls <= 0) return;
+    const btn = $('btnAdSouls'), id = p.weapon, n = lastSouls;
+    btn.disabled = true;
+    btn.textContent = 'LOADING AD...';
+    CG.rewardedAd({
+      start: () => setAdAudio(true),
+      done: (ok) => {
+        setAdAudio(false);
+        if (!ok) { btn.disabled = false; btn.textContent = 'NO AD NOW. TRY AGAIN LATER.'; return; }
+        const c = classes[id];
+        c.souls += n; c.earned += n;
+        saveClasses(false);
+        lastSouls = 0;
+        $('ovSouls').textContent = '+' + n * 2 + ' SOULS FOR ' + WEAPONS[id].name.toUpperCase() + ' (DOUBLED!)';
+        btn.classList.add('hidden');
+        sfx.heal();
+      },
+    });
+  });
 
   function startGame() {
     unlockAudio();
@@ -2808,6 +2843,7 @@
     $('ovWeapon').textContent = WEAPONS[p.weapon].name;
     const souls = giveSouls();
     $('ovSouls').textContent = '+' + souls + ' SOULS FOR ' + WEAPONS[p.weapon].name.toUpperCase();
+    setupAdButton();
     $('newBest').classList.toggle('hidden', !isNew);
     hide('hud'); hide('stick');
     show('scrOver');
@@ -2902,7 +2938,15 @@
   let actx = null;
   let muted = store.get(KEY_MUTE, '0') === '1';
   const lastPlay = {};
+  // The sound must stop while an ad plays (CrazyGames rule).
+  let adPlaying = false;
+  function setAdAudio(on) {
+    adPlaying = on;
+    if (!actx) return;
+    if (on) actx.suspend(); else actx.resume();
+  }
   function unlockAudio() {
+    if (adPlaying) return;
     if (!actx) {
       try { actx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { actx = null; }
     }
@@ -2994,6 +3038,7 @@
   let installEvt = null;
   addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
+    if (CG) return;
     installEvt = e;
     show('btnInstall');
   });
@@ -3009,7 +3054,7 @@
   // iPhone / iPad: Safari has no install prompt, so show a short help text.
   const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
   const isStandalone = window.navigator.standalone === true || matchMedia('(display-mode: standalone), (display-mode: fullscreen)').matches;
-  if (isIOS && !isStandalone) show('iosHint');
+  if (isIOS && !isStandalone && !CG) show('iosHint');
 
   // ---------- Resize ----------
   function resize() {
@@ -3050,6 +3095,7 @@
 
   // ---------- Loop ----------
   let last = performance.now();
+  let cgPlaying = false;
   function frame(now) {
     let dt = (now - last) / 1000;
     last = now;
@@ -3058,6 +3104,11 @@
     update(dt);
     render(dt);
     updateHud();
+    // CrazyGames wants to know when the player is playing (not in a menu).
+    if (CG) {
+      const playing = state === 'play' || state === 'dying';
+      if (playing !== cgPlaying) { cgPlaying = playing; if (playing) CG.gameplayStart(); else CG.gameplayStop(); }
+    }
     requestAnimationFrame(frame);
   }
 
@@ -3090,7 +3141,7 @@
   window.__pd = { get state() { return state; }, get floor() { return floor; }, get player() { return p; }, get enemies() { return enemies; }, get stairs() { return stairs; }, get area() { return area.id; }, get room() { return { w: ROOM_W, h: ROOM_H }; }, get shots() { return shots.length; }, get fx() { return { beams: beams.length, zaps: zaps.length, rockets: rockets.length, rangs: rangs.length, booms: booms.length, parts: parts.length, hits: hitfx.length }; } };
 
   // ---------- Service worker ----------
-  if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+  if (!CG && 'serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
     addEventListener('load', () => {
       navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then((reg) => reg.update()).catch(() => {});
     });
